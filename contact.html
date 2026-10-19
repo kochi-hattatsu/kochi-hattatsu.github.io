@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<meta name="description" content="高知発達ブースは、お子さまの発達や暮らしについて、専門職がお話をうかがい、一緒に考える相談ブースです。">
+<title>お問い合わせ | 高知発達ブースのいろいろ</title>
+<link rel="icon" href="img/logo.webp" type="image/webp">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="">
+<a class="skip" href="#main">本文へ</a>
+<header class="site-header">
+  <div class="wrap header-in">
+    <a class="brand" href="index.html"><img src="img/logo.webp" alt="" width="56" height="56"><span><span class="nb">高知発達ブース</span><span class="nb">のいろいろ</span></span></a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav" hidden>メニュー</button>
+  </div>
+  <nav id="nav" class="site-nav" aria-label="メニュー"><ul class="wrap"><li><a href="index.html">トップ</a></li><li><a href="about.html">概要</a></li><li><a href="consult.html">専門相談</a></li><li><a href="events.html">イベント情報</a></li><li><a href="gallery.html">フォトギャラリー</a></li><li><a href="board.html">みんなのお知らせ</a></li><li><a href="links.html">リンク</a></li><li><a href="makers.html">メーカー紹介</a></li><li><a href="contact.html" aria-current="page">お問い合わせ</a></li><li><a href="staff.html">関係者の方</a></li></ul></nav>
+</header>
+<main id="main" class="wrap">
+
+<h1>お問い合わせ</h1>
+<p class="lead">ご質問や、ボランティアスタッフでの参加希望など、お気軽にご連絡ください。<br>
+学生ボランティアの方からの感想やご要望も、こちらからお願いします。</p>
+
+<form id="contact-form" class="form" novalidate>
+  <div class="field">
+    <label for="f-name">お名前 <span class="opt">(任意)</span></label>
+    <input id="f-name" name="name" type="text" maxlength="60" autocomplete="name">
+  </div>
+
+  <fieldset class="field">
+    <legend>お返事の方法 <span class="req">必須</span></legend>
+    <label class="radio"><input type="radio" name="reply" value="mail" required> メールでお返事がほしい</label>
+    <label class="radio"><input type="radio" name="reply" value="tel"> 電話でお返事がほしい</label>
+    <label class="radio"><input type="radio" name="reply" value="either"> どちらでもよい</label>
+    <label class="radio"><input type="radio" name="reply" value="none"> お返事は不要</label>
+  </fieldset>
+
+  <div class="field">
+    <label for="f-mail">メールアドレス <span class="opt">(任意)</span></label>
+    <input id="f-mail" name="email" type="email" maxlength="120" autocomplete="email" inputmode="email">
+    <p class="hint">メールでのお返事を希望する場合は、Gmailからお送りします。迷惑メールの設定(フィルター)をご確認ください。</p>
+  </div>
+
+  <div class="field">
+    <label for="f-tel">電話番号 <span class="opt">(任意)</span></label>
+    <input id="f-tel" name="tel" type="tel" maxlength="20" autocomplete="tel" inputmode="tel">
+  </div>
+
+  <div class="field">
+    <label for="f-msg">お問い合わせの内容 <span class="req">必須</span></label>
+    <textarea id="f-msg" name="message" rows="7" maxlength="2000" required></textarea>
+  </div>
+
+  <div class="trap" aria-hidden="true">
+    <label for="f-web">このらんは、空のままにしてください</label>
+    <input id="f-web" name="website" type="text" tabindex="-1" autocomplete="off">
+  </div>
+
+  <p class="hint">いただいた内容は、事務局の管理者だけが確認し、お返事やご連絡のためだけに使います。必要がなくなったものは削除します。メールアドレスや電話番号は、このサイトの画面には表示されません。</p>
+  <button id="f-send" class="btn" type="submit">送信する</button>
+  <p id="f-status" class="status" role="status" aria-live="polite"></p>
+</form>
+
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© 高知発達ブースのいろいろ</p>
+    <p class="small">このサイトには広告・アクセス解析はありません。</p>
+  </div>
+</footer>
+<script src="config.js" defer></script>
+<script src="js/main.js" defer></script>
+
+</body>
+</html>
