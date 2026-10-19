@@ -114,6 +114,10 @@
   if (loginBox) {
     var authSt = document.getElementById('auth-status');
     if (/\bLine\//i.test(navigator.userAgent)) document.getElementById('line-warn').hidden = false;
+    if (!GAS) {  // 受付側(GAS)ができるまでは、ログインボタンを出さない
+      loginBox.hidden = true;
+      authSt.className = 'status'; authSt.textContent = 'ただいま準備中です。ご利用開始まで、しばらくお待ちください。';
+    }
     var needAdmin = document.body.className.indexOf('admin-page') >= 0;
     window.onGoogleCredential = function (resp) {
       if (!GAS) { authSt.className = 'status'; authSt.textContent = 'ただいま準備中です。'; return; }
