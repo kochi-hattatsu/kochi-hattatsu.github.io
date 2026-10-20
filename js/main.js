@@ -129,6 +129,8 @@
         loginBox.hidden = true;
         document.getElementById('member-hello').textContent = 'ログインしました。';
         document.getElementById('member-area').hidden = false;
+        window.APP = { cred: resp.credential, role: j.role };   // ログイン情報は、このページの中(メモリ)だけに置く。保存しない
+        document.dispatchEvent(new Event('member-ready'));
       }).catch(function () { authSt.className = 'status ng'; authSt.textContent = '確認できませんでした。時間をおいて、もう一度お試しください。'; });
     };
   }
