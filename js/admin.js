@@ -10,7 +10,8 @@
     'ai-nokey': 'AIのキーがまだ設定されていません。',
     'last-admin': '管理者の最後の1人は、消したり、役割を下げたりできません。',
     email: 'メールアドレスの形を確認してください。', length: '12文字以上にしてください。',
-    text: '内容が空か、長すぎます(12000文字まで)。', failed: 'うまくいきませんでした。時間をおいてお試しください。'
+    text: '内容が空か、長すぎます(12000文字まで)。',
+    files: 'ファイルを読み込めませんでした。画像(写真・スクリーンショット)か、4MBまでのPDFを、3つまで選んでください。', failed: 'うまくいきませんでした。時間をおいてお試しください。'
   };
 
   function h(tag, attrs, kids) {
@@ -112,6 +113,41 @@
       }).catch(function () { go.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
     } });
     view.appendChild(ta); view.appendChild(h('div', { class: 'btn-row' }, [go])); view.appendChild(res);
+
+
+    view.appendChild(h('h2', { text: '画像・PDFの取り込み' }));
+    view.appendChild(h('p', { text: 'LINEのスクリーンショットや写真、PDFを選ぶと、AIが読み取って「載せる候補」に整理します(3つまで。PDFは4MBまで)。載せるかどうかは、承認待ちで決めます。個人の名前や電話番号は、AIが要約に書かないようになっています。' }));
+    var fin = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,application/pdf', multiple: 'multiple', 'aria-label': '画像・PDFを選ぶ' });
+    var fnote = h('textarea', { rows: '3', maxlength: '2000', 'aria-label': '補足(任意)', placeholder: '補足があれば(任意)。例: 11月のセミナーの案内です' });
+    var fres = h('p', { class: 'status', role: 'status' });
+    function toB64(buf) { var b = new Uint8Array(buf), s = '', i; for (i = 0; i < b.length; i += 32768) s += String.fromCharCode.apply(null, b.subarray(i, i + 32768)); return btoa(s); }
+    function prepFile(f) {   // 画像は縮小(長い辺1600px・JPEG)。PDFはそのまま
+      if (f.type === 'application/pdf') {
+        if (f.size > 4 * 1024 * 1024) return Promise.reject(new Error('big'));
+        return f.arrayBuffer().then(function (buf) { return { mime: 'application/pdf', b64: toB64(buf) }; });
+      }
+      if (!/^image\/(png|jpeg|webp)$/.test(f.type)) return Promise.reject(new Error('type'));
+      return createImageBitmap(f).then(function (bm) {
+        var sc = Math.min(1, 1600 / Math.max(bm.width, bm.height)), c = document.createElement('canvas');
+        c.width = Math.round(bm.width * sc); c.height = Math.round(bm.height * sc);
+        c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height);
+        return new Promise(function (ok, ng) { c.toBlob(function (bl) { bl ? bl.arrayBuffer().then(function (buf) { ok({ mime: 'image/jpeg', b64: toB64(buf) }); }) : ng(new Error('img')); }, 'image/jpeg', 0.85); });
+      });
+    }
+    var fgo = h('button', { class: 'btn', type: 'button', text: 'AIで読み取る', onclick: function () {
+      var list = Array.prototype.slice.call(fin.files || []);
+      if (!list.length || list.length > 3) { fres.className = 'status ng'; fres.textContent = ERR.files; return; }
+      fgo.disabled = true; fres.className = 'status'; fres.textContent = '読み取っています…(1分ほどかかることがあります)';
+      Promise.all(list.map(prepFile)).then(function (files) {
+        return api('admin.ingest.files', { files: files, text: fnote.value });
+      }).then(function (r) {
+        fgo.disabled = false;
+        if (r && r.ok) { fres.className = 'status ok'; fres.textContent = r.added + '件を承認待ちに入れました。'; fin.value = ''; fnote.value = ''; }
+        else { fres.className = 'status ng'; fres.textContent = errText(r); }
+      }).catch(function () { fgo.disabled = false; fres.className = 'status ng'; fres.textContent = ERR.files; });
+    } });
+    view.appendChild(h('div', { class: 'field' }, [fin])); view.appendChild(fnote);
+    view.appendChild(h('div', { class: 'btn-row' }, [fgo])); view.appendChild(fres);
 
     view.appendChild(h('h2', { text: 'メールの取り込み' }));
     view.appendChild(h('p', { text: '専用Gmailで、ラベル「HP取込」を付けたメールだけを読みます(30分おきに自動。いますぐ読むときは下のボタン)。他のメールは読みません。' }));
