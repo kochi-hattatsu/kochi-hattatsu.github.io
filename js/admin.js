@@ -68,7 +68,13 @@
     if (p.personal_flag) badges.appendChild(h('span', { class: 'badge warn', text: '個人情報が含まれる可能性' }));
     if (p.duplicate_of) badges.appendChild(h('span', { class: 'badge', text: '近い内容がすでにあります' }));
     badges.appendChild(h('span', { class: 'badge', text: '元: ' + (p.source_ref || p.source) }));
+    var armedPublic = false;
     function decide(decision) {
+      if (decision === 'approve' && p.personal_flag && target.value === 'public' && !armedPublic) {   // 個人情報の可能性があるものを、一般に公開する前の再確認
+        armedPublic = true; res.className = 'status ng';
+        res.textContent = '個人情報が含まれる可能性があります。内容を確認して、問題なければ、もう一度「承認して載せる」を押してください。';
+        return;
+      }
       approve.disabled = reject.disabled = true; res.textContent = '送信しています…';
       api('admin.pending.decide', {
         id: p.id, decision: decision,
