@@ -49,7 +49,7 @@ h2{font-size:22px;line-height:1.5;margin:32px 0 8px;padding-left:12px;border-lef
 .hero-logo{border-radius:50%;flex:none}
 .hero h1{margin-top:0}
 .quick{display:grid;gap:12px;margin:0 0 24px}
-@media (min-width:640px){ .quick{grid-template-columns:repeat(3,1fr)} }
+@media (min-width:640px){ .quick{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))} }
 .card-link{display:block;text-decoration:none;color:var(--ink);background:var(--white);border:2px solid var(--line);border-radius:var(--radius);padding:16px;min-height:44px}
 .card-link strong{display:block;color:var(--green-d);font-size:20px}
 .card-link span{display:block;font-size:16px;color:var(--muted);line-height:1.6;margin-top:4px}
