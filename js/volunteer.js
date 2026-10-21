@@ -12,6 +12,7 @@
   var app = document.getElementById('app');
   function card(it) {
     var d = h('article', { class: 'item' });
+    if (it.attendance) d.appendChild(h('p', {}, [h('span', { class: 'badge', text: it.attendance })]));   // 参加区分(全員参加/希望者のみ/リーダーのみ)
     var when = it.dateText || it.date;
     if (when) d.appendChild(h('time', { text: when }));
     d.appendChild(h('h3', { text: it.title }));
