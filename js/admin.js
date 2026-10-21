@@ -3,7 +3,7 @@
   'use strict';
   var TARGET_LABEL = { public: '一般向け(誰でも見られる)', maker: 'メーカー向け', volunteer: 'ボランティア向け', skip: '載せない' };
   var KINDS = ['お知らせ', 'イベント', 'タスク', 'その他'];
-  var TOPICS = ['配置', '当日の流れ', '相談', '議事録置き場', 'セミナー', '定例会予定'];
+  var TOPICS = ['配置', '当日の流れ', '相談', '議事録置き場', 'セミナー', '定例会予定', '事務局への回答'];
   var ATTENDS = ['全員参加', '希望者のみ', 'リーダーのみ'];
   var STATUS_LABEL = { active: '公開中', withdrawn: '取り下げ済み' };
   var ERR = {
