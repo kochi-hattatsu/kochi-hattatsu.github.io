@@ -13,7 +13,7 @@
     'last-admin': '管理者の最後の1人は、消したり、役割を下げたりできません。',
     email: 'メールアドレスの形を確認してください。', length: '12文字以上にしてください。',
     text: '内容が空か、長すぎます(12000文字まで)。',
-    files: 'ファイルを読み込めませんでした。画像(写真・スクリーンショット)か、4MBまでのPDFを、3つまで選んでください。', failed: 'うまくいきませんでした。時間をおいてお試しください。'
+    files: 'ファイルを読み込めませんでした。画像(写真・スクリーンショット)か、4MBまでのPDFを、8つまで選んでください。合計で約10MBまでです。', failed: 'うまくいきませんでした。時間をおいてお試しください。'
   };
 
   function h(tag, attrs, kids) {
@@ -140,7 +140,7 @@
     view.appendChild(ta); view.appendChild(h('div', { class: 'btn-row' }, [go])); view.appendChild(res);
 
     view.appendChild(h('h2', { text: '画像・PDFの取り込み' }));
-    view.appendChild(h('p', { text: 'LINEのスクリーンショットや写真、PDFを選んでください(3つまで。PDFは4MBまで)。個人の名前や電話番号は、AIが要約に書かないようになっています。' }));
+    view.appendChild(h('p', { text: 'LINEのスクリーンショットや写真、PDFを選んでください(8つまで。PDFは1つ4MBまで・合計で約10MBまで)。個人の名前や電話番号は、AIが要約に書かないようになっています。' }));
     var fin = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,application/pdf', multiple: 'multiple', 'aria-label': '画像・PDFを選ぶ' });
     var fres = h('p', { class: 'status', role: 'status' });
     function toB64(buf) { var b = new Uint8Array(buf), s = '', i; for (i = 0; i < b.length; i += 32768) s += String.fromCharCode.apply(null, b.subarray(i, i + 32768)); return btoa(s); }
@@ -159,9 +159,11 @@
     }
     var fgo = h('button', { class: 'btn', type: 'button', text: 'AIで読み取る', onclick: function () {
       var list = Array.prototype.slice.call(fin.files || []);
-      if (!list.length || list.length > 3) { fres.className = 'status ng'; fres.textContent = ERR.files; return; }
+      if (!list.length || list.length > 8) { fres.className = 'status ng'; fres.textContent = ERR.files; return; }
       fgo.disabled = true; fres.className = 'status'; fres.textContent = '読み取っています…(1分ほどかかることがあります)';
       Promise.all(list.map(prepFile)).then(function (files) {
+        var total = files.reduce(function (n, f) { return n + f.b64.length; }, 0);
+        if (total > 13000000) return { ok: false, reason: 'files' };   // 合計が大きすぎる(送信の上限は約14MB)
         return api('admin.ingest.files', { files: files, preset: preset.get() });
       }).then(function (r) {
         fgo.disabled = false;
