@@ -45,6 +45,32 @@
     return s;
   }
 
+  // 載せる先は、複数選べる(一般向け・メーカー向け・ボランティア向け)。initial: 「public,volunteer」のような文字。
+  function targetChecks(initial) {
+    var cur = String(initial || '').split(',');
+    var box = h('div', { class: 'checks', role: 'group', 'aria-label': '載せる先(複数選べます)' });
+    var inputs = ['public', 'maker', 'volunteer'].map(function (k) {
+      var cb = h('input', { type: 'checkbox', value: k });
+      cb.checked = cur.indexOf(k) >= 0;
+      box.appendChild(h('label', {}, [cb, TARGET_LABEL[k]]));
+      return cb;
+    });
+    return { box: box, get: function () { return inputs.filter(function (c) { return c.checked; }).map(function (c) { return c.value; }); } };
+  }
+  function targetsText(str) { return String(str || '').split(',').map(function (k) { return TARGET_LABEL[k] || ''; }).filter(Boolean).join('・'); }
+
+  // 元の内容(何をもとに作った候補か)。文章と、元のメール・ファイルを開くリンク。
+  function srcBox(text, urlStr, linkLabel) {
+    var urls = String(urlStr || '').split(/\s+/).filter(function (u) { return /^https:\/\//.test(u); });
+    if (!text && !urls.length) return null;
+    var d = h('details', { class: 'srcbox' }, [h('summary', { text: '元の内容を見る' })]);
+    if (text) d.appendChild(h('p', { class: 'src', text: text }));
+    urls.forEach(function (u, i) {
+      d.appendChild(h('p', {}, [h('a', { href: u, target: '_blank', rel: 'noopener noreferrer', text: linkLabel + (urls.length > 1 ? '(' + (i + 1) + ')' : '') })]));
+    });
+    return d;
+  }
+
   // ---- 承認待ち
   function renderPending() {
     view.textContent = '';
@@ -58,7 +84,7 @@
   function pendingCard(p) {
     var title = h('input', { type: 'text', maxlength: '80', value: p.title });
     var kind = sel(KINDS, p.kind);
-    var target = sel(['public', 'maker', 'volunteer', 'skip'], p.proposed_target, function (o) { return TARGET_LABEL[o]; });
+    var tc = targetChecks(p.proposed_target);   // 「skip」(載せない)のときは、どれもチェックなし
     var topic = sel([''].concat(TOPICS), p.topic, function (o) { return o || '(話題なし)'; });
     var attend = sel([''].concat(ATTENDS), p.attendance, function (o) { return o || '(指定なし)'; });
     var date = h('input', { type: 'date', value: /^\d{4}-\d{2}-\d{2}$/.test(p.date) ? p.date : '' });
@@ -68,13 +94,18 @@
     var url = h('input', { type: 'url', maxlength: '300', value: p.url || '' });
     var res = h('p', { class: 'status', role: 'status' });
     var card = h('section', { class: 'item' });
+    var source = srcBox(p.source_text, p.source_url, p.source === 'mail' ? '元のメールを開く(専用アカウントのGmail)' : '元のファイルを開く(Google ドライブ)');
     var badges = h('p');
     if (p.personal_flag) badges.appendChild(h('span', { class: 'badge warn', text: '個人情報が含まれる可能性' }));
     if (p.duplicate_of) badges.appendChild(h('span', { class: 'badge', text: '近い内容がすでにあります' }));
     badges.appendChild(h('span', { class: 'badge', text: '元: ' + (p.source_ref || p.source) }));
     var armedPublic = false;
     function decide(decision) {
-      if (decision === 'approve' && p.personal_flag && target.value === 'public' && !armedPublic) {   // 個人情報の可能性があるものを、一般に公開する前の再確認
+      if (decision === 'approve' && !tc.get().length) {   // 載せる先が1つも選ばれていない
+        res.className = 'status ng'; res.textContent = '載せる先を、1つ以上選んでください(載せないときは「載せない」を押します)。';
+        return;
+      }
+      if (decision === 'approve' && p.personal_flag && tc.get().indexOf('public') >= 0 && !armedPublic) {   // 個人情報の可能性があるものを、一般に公開する前の再確認
         armedPublic = true; res.className = 'status ng';
         res.textContent = '個人情報が含まれる可能性があります。内容を確認して、問題なければ、もう一度「承認して載せる」を押してください。';
         return;
@@ -82,7 +113,7 @@
       approve.disabled = reject.disabled = true; res.textContent = '送信しています…';
       api('admin.pending.decide', {
         id: p.id, decision: decision,
-        edits: { title: title.value, kind: kind.value, target: target.value, topic: topic.value, attendance: attend.value, date: date.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value }
+        edits: { title: title.value, kind: kind.value, targets: decision === 'reject' ? [] : tc.get(), topic: topic.value, attendance: attend.value, date: date.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value }
       }).then(function (r) {
         if (r && r.ok) {
           res.className = 'status ok';
@@ -94,26 +125,26 @@
     }
     var approve = h('button', { class: 'btn', type: 'button', text: '承認して載せる', onclick: function () { decide('approve'); } });
     var reject = h('button', { class: 'btn-sub', type: 'button', text: '載せない', onclick: function () { decide('reject'); } });
-    [badges, field('見出し', title), field('種類', kind), field('載せる先', target), field('話題(ボランティア向けのとき)', topic), field('参加区分(ボランティア向けのとき)', attend),
+    [badges, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます)', tc.box), field('話題(ボランティア向けのとき)', topic), field('参加区分(ボランティア向けのとき)', attend),
       field('日付', date), field('日時の文章', dateText), field('場所', place), field('要約', summary), field('リンク(https)', url),
-      h('div', { class: 'btn-row' }, [approve, reject]), res].forEach(function (x) { card.appendChild(x); });
+      h('div', { class: 'btn-row' }, [approve, reject]), res].forEach(function (x) { if (x) card.appendChild(x); });
     return card;
   }
 
   // ---- 取り込み(貼り付け・画像/PDF・メール)
   // 載せ方の指定(載せる先・話題・参加区分・補足メモ)。貼り付けと画像・PDFで共通。空のものは、AIの提案に任せる。
   function presetBox() {
-    var target = sel(['', 'public', 'maker', 'volunteer'], '', function (o) { return o ? TARGET_LABEL[o] : 'おまかせ(AIが提案)'; });
+    var tcp = targetChecks('');   // 何も選ばなければ、AIが提案する
     var topic = sel([''].concat(TOPICS), '', function (o) { return o || '(おまかせ・話題なし)'; });
     var attend = sel([''].concat(ATTENDS), '', function (o) { return o || '(指定なし)'; });
     var memo = h('textarea', { rows: '2', maxlength: '300', 'aria-label': '補足メモ', placeholder: '例: 全員参加は不要です。参加できる方だけで。' });
     var box = h('section', { class: 'item' }, [
       h('p', { class: 'hint', text: 'ここで指定すると、承認待ちに、その内容で入ります(承認のときにも直せます)。空のところは、AIが提案します。' }),
-      field('載せる先', target), field('話題(ボランティア向けのとき)', topic), field('参加区分(ボランティア向けのとき)', attend),
+      field('載せる先(複数選べます。選ばなければ、AIが提案します)', tcp.box), field('話題(ボランティア向けのとき)', topic), field('参加区分(ボランティア向けのとき)', attend),
       field('補足メモ(任意。要約にも反映します)', memo)]);
     return {
       box: box,
-      get: function () { return { target: target.value, topic: topic.value, attendance: attend.value, memo: memo.value }; },
+      get: function () { return { targets: tcp.get(), topic: topic.value, attendance: attend.value, memo: memo.value }; },
       clear: function () { memo.value = ''; }
     };
   }
@@ -147,14 +178,14 @@
     function prepFile(f) {   // 画像は縮小(長い辺1600px・JPEG)。PDFはそのまま
       if (f.type === 'application/pdf') {
         if (f.size > 4 * 1024 * 1024) return Promise.reject(new Error('big'));
-        return f.arrayBuffer().then(function (buf) { return { mime: 'application/pdf', b64: toB64(buf) }; });
+        return f.arrayBuffer().then(function (buf) { return { mime: 'application/pdf', b64: toB64(buf), name: f.name }; });
       }
       if (!/^image\/(png|jpeg|webp)$/.test(f.type)) return Promise.reject(new Error('type'));
       return createImageBitmap(f).then(function (bm) {
         var sc = Math.min(1, 1600 / Math.max(bm.width, bm.height)), c = document.createElement('canvas');
         c.width = Math.round(bm.width * sc); c.height = Math.round(bm.height * sc);
         c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height);
-        return new Promise(function (ok, ng) { c.toBlob(function (bl) { bl ? bl.arrayBuffer().then(function (buf) { ok({ mime: 'image/jpeg', b64: toB64(buf) }); }) : ng(new Error('img')); }, 'image/jpeg', 0.85); });
+        return new Promise(function (ok, ng) { c.toBlob(function (bl) { bl ? bl.arrayBuffer().then(function (buf) { ok({ mime: 'image/jpeg', b64: toB64(buf), name: f.name }); }) : ng(new Error('img')); }, 'image/jpeg', 0.85); });
       });
     }
     var fgo = h('button', { class: 'btn', type: 'button', text: 'AIで読み取る', onclick: function () {
@@ -206,7 +237,7 @@
     var active = it.status === 'active';
     var title = h('input', { type: 'text', maxlength: '80', value: it.title });
     var kind = sel(KINDS, it.kind);
-    var target = sel(['public', 'maker', 'volunteer'], it.target, function (o) { return TARGET_LABEL[o]; });
+    var tcq = targetChecks(it.target);
     var topic = sel([''].concat(TOPICS), it.topic, function (o) { return o || '(話題なし)'; });
     var attend = sel([''].concat(ATTENDS), it.attendance, function (o) { return o || '(指定なし)'; });
     var date = h('input', { type: 'date', value: /^\d{4}-\d{2}-\d{2}$/.test(it.date) ? it.date : '' });
@@ -216,8 +247,8 @@
     var url = h('input', { type: 'url', maxlength: '300', value: it.url || '' });
     var res = h('p', { class: 'status', role: 'status' });
     var badges = h('p', {}, [h('span', { class: 'badge' + (active ? '' : ' warn'), text: STATUS_LABEL[it.status] || it.status }),
-      h('span', { class: 'badge', text: TARGET_LABEL[it.target] || it.target })]);
-    var inputs = [title, kind, target, topic, attend, date, dateText, place, summary, url];
+      h('span', { class: 'badge', text: targetsText(it.target) || it.target })]);
+    var inputs = [title, kind, topic, attend, date, dateText, place, summary, url].concat([].slice.call(tcq.box.querySelectorAll('input')));
     if (!active) inputs.forEach(function (x) { x.disabled = true; });
     function done(r, okText) {
       if (r && r.ok) {
@@ -229,7 +260,7 @@
     }
     var save = h('button', { class: 'btn', type: 'button', text: '修正を保存', onclick: function () {
       save.disabled = true; res.className = 'status'; res.textContent = '保存しています…';
-      api('admin.published.update', { id: it.id, edits: { title: title.value, kind: kind.value, target: target.value, topic: topic.value, attendance: attend.value,
+      api('admin.published.update', { id: it.id, edits: { title: title.value, kind: kind.value, targets: tcq.get(), topic: topic.value, attendance: attend.value,
         date: date.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value } }).then(function (r) {
         save.disabled = false; done(r, '保存しました。');
       }).catch(function () { save.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
@@ -246,9 +277,10 @@
       api('admin.published.withdraw', { id: it.id, restore: true }).then(function (r) { if (done(r, '公開に戻しました。')) setTimeout(function () { card.remove(); }, 1500); else restore.disabled = false; })
         .catch(function () { restore.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
     } });
-    [badges, field('見出し', title), field('種類', kind), field('載せる先', target), field('話題(ボランティア向けのとき)', topic),
+    var source = srcBox('', it.source_url, '元の資料を開く');
+    [badges, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます。あとから追加もできます)', tcq.box), field('話題(ボランティア向けのとき)', topic),
       field('参加区分(ボランティア向けのとき)', attend), field('日付', date), field('日時の文章', dateText), field('場所', place), field('要約', summary),
-      field('リンク(https)', url), h('div', { class: 'btn-row' }, active ? [save, withdraw] : [restore]), res].forEach(function (x) { card.appendChild(x); });
+      field('リンク(https)', url), h('div', { class: 'btn-row' }, active ? [save, withdraw] : [restore]), res].forEach(function (x) { if (x) card.appendChild(x); });
     return card;
   }
 

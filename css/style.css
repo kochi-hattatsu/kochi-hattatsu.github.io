@@ -258,3 +258,10 @@ main>.status:not(:empty){text-align:center;font-size:20px;padding:28px 20px;bord
 }
 
 .notice + .form .status{display:none}
+/* ---- 管理ページ: 載せる先(複数選べるチェック)・元の内容 ---- */
+.field .checks{display:flex;flex-wrap:wrap;gap:8px}
+.field .checks label{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1.5px solid var(--field-line);border-radius:12px;background:var(--field-bg);font-weight:400;min-height:48px;margin:0;cursor:pointer}
+.field .checks input{width:22px;height:22px;margin:0;accent-color:var(--green)}
+details.srcbox{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin:8px 0 14px}
+details.srcbox summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+details.srcbox .src{white-space:pre-wrap;max-width:none;font-size:16px;line-height:1.7;max-height:300px;overflow:auto;margin:6px 0}
