@@ -10,19 +10,19 @@
 :root{
   --green:#11532f; --green-l:#e6f0e8; --orange:#e8892b; --orange-l:#fff0dc; --orange-d:#8a4705;
   --cream:#faf7f0; --ink:#1f2a24; --muted:#4a574f; --line:#ddd5c4; --white:#fff;
-  --warn-bg:#fff1c9; --warn-ink:#5b4300; --focus:#1d5fd0; --btn-ink:#fff; --navy:#1d2e4a; --navy-ink:#fff;
+  --warn-bg:#fff1c9; --warn-ink:#5b4300; --focus:#1d5fd0; --btn-ink:#fff; --navy:#1d2e4a; --navy-ink:#fff; --mark:#FFD16699;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --green:#9fe0b4; --green-l:#3a4f43; --orange-l:#4a3418; --orange-d:#f3bd80;
     --cream:#1f2b25; --ink:#f3f7f4; --muted:#d8e2db; --line:#5c7266; --white:#2f4037;
-    --warn-bg:#5a4a1a; --warn-ink:#ffeeb8; --focus:#ffd76a; --btn-ink:#0d2216; --navy:#22344f; --navy-ink:#eef3fb;
+    --warn-bg:#5a4a1a; --warn-ink:#ffeeb8; --focus:#ffd76a; --btn-ink:#0d2216; --navy:#22344f; --navy-ink:#eef3fb; --mark:#FFD16655;
   }
 }
 :root[data-theme="dark"]{
   --green:#9fe0b4; --green-l:#3a4f43; --orange-l:#4a3418; --orange-d:#f3bd80;
   --cream:#1f2b25; --ink:#f3f7f4; --muted:#d8e2db; --line:#5c7266; --white:#2f4037;
-  --warn-bg:#5a4a1a; --warn-ink:#ffeeb8; --focus:#ffd76a; --btn-ink:#0d2216; --navy:#22344f; --navy-ink:#eef3fb;
+  --warn-bg:#5a4a1a; --warn-ink:#ffeeb8; --focus:#ffd76a; --btn-ink:#0d2216; --navy:#22344f; --navy-ink:#eef3fb; --mark:#FFD16655;
 }
 *{box-sizing:border-box}
 img{max-width:100%;height:auto}
@@ -41,10 +41,16 @@ h1{font-size:1.7rem;line-height:1.35;margin:4px 0 6px;color:var(--green)}
 .key{background:var(--navy);color:var(--navy-ink);border-radius:16px;padding:16px 18px;font-size:1.15rem;font-weight:700;line-height:1.6;margin:0 0 18px}
 nav.toc{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin-bottom:22px}
 nav.toc p{margin:0 0 4px;font-weight:700}
-nav.toc ol{margin:0;padding-left:1.4em;columns:2;column-gap:20px}
+nav.toc ol{margin:0;padding-left:0;list-style:none;counter-reset:t;columns:2;column-gap:20px}
 nav.toc li{break-inside:avoid}
 section{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:20px 18px;margin-bottom:18px;scroll-margin-top:12px}
-h2{font-size:1.3rem;line-height:1.4;margin:0 0 10px;color:var(--green)}
+h2{font-size:1.3rem;line-height:1.4;margin:0 0 14px;color:var(--green);display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:3px solid var(--green-l);position:relative}
+h2::after{content:"";position:absolute;left:0;bottom:-3px;width:64px;height:3px;background:var(--orange);border-radius:2px}
+h2 .no{flex:0 0 36px;height:36px;border-radius:50%;background:var(--green);color:var(--btn-ink);display:grid;place-items:center;font-size:1.05rem}
+h2 .h2ic{margin-left:auto;width:44px;height:44px;flex:0 0 44px}
+.h3ic{display:flex;align-items:center;gap:8px}
+.h3ic img{width:40px;height:40px}
+.vs .h3ic img{width:28px;height:28px}
 h3{font-size:1.05rem;margin:18px 0 6px}
 p{margin:0 0 12px}
 .muted{color:var(--muted);font-size:.95rem}
@@ -66,6 +72,10 @@ button.btn{font:inherit;cursor:pointer}
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
 .cmp div{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
 .cmp b{display:block;color:var(--green)}
+.cmp .big{background:var(--orange-l);border:none;border-top:5px solid var(--orange);text-align:center;padding:12px}
+.cmp .num{display:block;font-size:1.6rem;font-weight:800;color:var(--orange-d);line-height:1.3}
+.cmp small{display:block;color:var(--muted);font-size:.88rem}
+.mark{background:linear-gradient(transparent 60%,var(--mark) 60%);font-weight:700}
 .tbl{overflow-x:auto;margin:6px 0 10px}
 table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem;line-height:1.55}
 th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
@@ -84,6 +94,7 @@ ul.tight li{margin-bottom:4px}
 .map b{display:block}
 .pic{float:right;width:130px;margin:0 0 8px 12px}
 .clear{clear:both}
+.stepimg{display:block;width:160px;margin:8px auto 0}
 .fig{border:1.5px solid var(--line);border-radius:14px;padding:14px;margin:8px 0 14px;background:var(--cream)}
 .fig .cap{font-weight:700;margin:0 0 8px;color:var(--green)}
 .steps{list-style:none;margin:0;padding:0}
@@ -117,21 +128,10 @@ ul.tight li{margin-bottom:4px}
 .env{display:grid;gap:8px;margin:8px 0 12px}
 .env div{border-left:5px solid var(--orange);background:var(--orange-l);border-radius:0 10px 10px 0;padding:8px 12px}
 .env b{display:block}
-.map2{padding:12px}
-.map2 .node{display:inline-block;background:var(--white);border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;font-weight:700;font-size:.95rem;line-height:1.4;text-align:center}
-.map2 .node small{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
-.map2 .node.main{border:2.5px solid var(--green)}
-.map2 .m-top,.map2 .m-mid{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-.map2 .m-lab{color:var(--orange-d);font-weight:700;font-size:.85rem}
-.map2 .m-down{display:block;width:100%;text-align:center;color:var(--orange-d);font-weight:700;font-size:.9rem;line-height:1.5;margin:4px 0 2px}
-.map2 .m-rows{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-.map2 .m-rows li{display:grid;grid-template-columns:1.15fr 18px 1fr;align-items:center;gap:4px}
-.map2 .fn{word-break:keep-all;overflow-wrap:anywhere;background:var(--orange-l);border-radius:8px;padding:6px 8px;font-size:.9rem;font-weight:700;line-height:1.4}
-.map2 .ar{color:var(--orange);font-weight:700;text-align:center;font-size:1.1rem}
-.map2 .sv{background:var(--white);border:1.5px solid var(--green);border-radius:8px;padding:5px 8px;font-size:.88rem;line-height:1.35}
-.map2 .sv b{display:block;color:var(--green)}
-.map2 .sv small{color:var(--muted);font-size:.78rem}
-.map2 .m-note{margin:10px 0 0;font-size:.9rem;font-weight:700;text-align:center}
+.env .ico{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center}
+.env .ico img{width:48px;height:48px}
+.mapimg{display:block;max-width:600px;margin:8px auto 0}
+.mapimg img{display:block;width:100%;height:auto;border-radius:14px;border:1.5px solid var(--line)}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0}
 .tabs button{font:inherit;font-size:.92rem;font-weight:700;cursor:pointer;border:1.5px solid var(--line);background:var(--cream);color:var(--ink);border-radius:10px 10px 0 0;padding:8px 12px;min-height:44px}
 .tabs button[aria-selected="true"]{background:var(--green);color:var(--btn-ink);border-color:var(--green)}
@@ -145,6 +145,14 @@ ul.tight li{margin-bottom:4px}
 .vlink b{display:block;color:var(--green);font-size:1.1rem}
 .spec{border:1.5px dashed var(--orange);border-radius:12px;padding:10px 14px;margin:0 0 12px}
 .spec b{color:var(--orange-d)}
+.sample-text{background:var(--cream);border-radius:12px;padding:10px 12px;line-height:1.9}
+.sample-text .seg{display:block}
+.sample-text small{display:inline-block;margin-left:6px;font-size:.78rem;font-weight:700;color:var(--orange-d);border:1.5px solid var(--orange);border-radius:999px;padding:0 8px;line-height:1.6}
+.listen{display:grid;gap:10px;margin:8px 0}
+.listen>div{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+.listen b{display:block;color:var(--green)}
+.listen small{display:block;color:var(--muted);font-size:.86rem;margin-bottom:6px}
+.listen audio{width:100%}
 .vc{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 12px}
 .vcard{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px}
 .vcard h3{margin:0 0 4px;color:var(--green)}
@@ -153,11 +161,21 @@ ul.tight li{margin-bottom:4px}
 .vcard dt{font-size:.85rem;color:var(--muted);margin-top:6px}
 .vcard dd{margin:0}
 .up{display:block;color:var(--orange-d);font-weight:700}
-nav.toc a{display:block;padding:8px 0;min-height:44px}
+nav.toc li{counter-increment:t}
+nav.toc a{display:flex;gap:8px;align-items:center;padding:8px 0;min-height:44px}
+nav.toc a::before{content:counter(t);flex:0 0 26px;height:26px;border-radius:50%;background:var(--green-l);color:var(--green);font-weight:700;display:grid;place-items:center;font-size:.85rem}
 nav.toc li{margin:0}
 .top a,footer a{display:inline-block;padding:10px 0}
 .back{text-align:right;margin:8px 0 0;font-size:.95rem}
 .sum{margin:-6px 0 18px}
+.sum .hi{color:var(--orange-d)}
+.band{margin:28px -16px 16px;padding:10px 16px;background:var(--green);color:var(--btn-ink);font-weight:700;text-align:center;letter-spacing:.1em}
+#video,#tool,#flow{border-top:6px solid var(--green)}
+.key{border-left:8px solid #FFD166}
+#tool{background:var(--orange-l);border-color:var(--orange)}
+#tool .btn{box-shadow:0 3px 0 var(--orange-d)}
+.vcard.good{border-left:6px solid var(--green)}
+.vcard.so{border-left:6px solid var(--line)}
 footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 @media (max-width:520px){
   .hero{grid-template-columns:1fr 96px}.hero img{width:96px}
@@ -188,7 +206,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </div>
 
 <p class="key">必要なのはプログラミングではなく、<br>その子を知っていること。</p>
-<p class="muted sum">費用の目安: 作るとき月3,000円、動かすとき月約300円(<a href="#cost">くわしく</a>)</p>
+<p class="muted sum">費用の目安: 作るとき<b class="hi">月3,000円</b>、動かすとき<b class="hi">月約300円</b>(<a href="#cost">くわしく</a>)</p>
 
 <nav class="toc" id="toc" aria-label="このページの中身">
   <p>このページの中身</p>
@@ -203,12 +221,12 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
     <li><a href="#nopi">ラズパイはなくても大丈夫</a></li>
     <li><a href="#chara">キャラの用意と性格づけ</a></li>
     <li><a href="#trouble">つまずきやすい所</a></li>
-    <li><a href="#sample">見本: 発表者と同じ形(参考)</a></li>
+    <li><a href="#sample">見本: 発表者のアプリに近いもの(参考)</a></li>
   </ol>
 </nav>
 
 <section id="video">
-  <h2>1. 紹介動画と、実際のポスター</h2>
+  <h2><span class="no">1</span>紹介動画と、実際のポスター</h2>
   <h3 style="margin-top:0">紹介動画(約2分20秒)</h3>
   <a class="vlink" href="video.html"><img src="img/app.jpg" alt="アプリの画面" width="720" height="847"><span><b>▶ 動画を見る</b>別のページで開きます。音が出ます。</span></a>
   <h3>実際のポスター</h3>
@@ -218,7 +236,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </section>
 
 <section id="tool">
-  <h2>2. 指示文づくりツール</h2>
+  <h2><span class="no">2</span>指示文づくりツール</h2>
   <p>質問に答えると、AIに渡す最初の文章ができます。それをAIに貼り付ければ、AIが質問しながら一緒に設計してくれます。</p>
   <p class="note">発表者のアプリは「キャラが窓口になり、色々な機能につながる」形です。でも、どの子にもこの形が合うとは限りません。1つの困りごとに1つのシンプルなアプリのほうが合う子もいます。ツールでは形を選べます。迷ったら「分からない」でAIに提案してもらえます。</p>
   <p><a class="btn" href="tool.html">指示文づくりツールを開く(無料・登録なし)</a></p>
@@ -227,7 +245,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </section>
 
 <section id="flow">
-  <h2>3. 頼み方の流れ</h2>
+  <h2><span class="no">3</span>頼み方の流れ</h2>
   <p>発表者の実際のやり取りは、とても長いものでした。まず、今から始める方がつまずかずに進める流れにまとめ直しています。その下に、実際のやり取りの再現を載せています。</p>
   <img class="pic" src="img/consult.png" alt="スマホでAIに相談しているイラスト" width="420" height="426">
   <ol class="flow">
@@ -246,7 +264,8 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
       <div class="say me"><span class="who">あなた</span>「ボタンを押しても動かない」(画面のスクショも見せる)</div>
       専門的な説明はいりません。見たままを伝えれば直してくれます。</li>
     <li><b>空き時間や寝ている間に任せる</b>
-      移動中にスマホの音声で相談したり、空き時間に5分だけ指示したりできます。止める条件を決めておけば、寝ている間に確認と修正をくり返してもらうこともできます。</li>
+      移動中にスマホの音声で相談したり、空き時間に5分だけ指示したりできます。止める条件を決めておけば、寝ている間に確認と修正をくり返してもらうこともできます。
+      <img class="stepimg" src="img/sleep.png" alt="寝ている間にAIが作業を進めているイラスト" width="420" height="280"></li>
   </ol>
   <div class="clear"></div>
   <h3>実際のやり取り(再現)</h3>
@@ -314,16 +333,18 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
   <p class="back"><a href="#toc">▲ 中身の一覧へ</a></p>
 </section>
 
+<p class="band">ここから くわしい解説</p>
+
 <section id="cost">
-  <h2>4. 費用</h2>
+  <h2><span class="no">4</span>費用</h2>
   <div class="cmp">
-    <div><b>作るとき</b>AI(Claude Pro)月3,000円</div>
-    <div><b>動かすとき</b>月 約300円(使った分だけ)</div>
+    <div class="big"><b>作るとき</b><span class="num">月 3,000円</span><small>AI(Claude Pro)</small></div>
+    <div class="big"><b>動かすとき</b><span class="num">月 約300円</span><small>使った分だけ</small></div>
   </div>
   <p>月約300円の前提: 1日30往復の会話、週2回しりとり15往復、週3回の絵日記。</p>
   <ul class="tight">
     <li>1回あたりの目安: 会話 0.04〜0.35円、声 0.12円、写真の読み取り 0.1円、絵日記 7円</li>
-    <li>作った時間は実働 約30時間。そのうち約6割は声選びでした。下の比較表を使えば、もっと短くできます</li>
+    <li>作った時間は<span class="mark">実働 約30時間</span>。そのうち<span class="mark">約6割は声選び</span>でした。下の比較表を使えば、もっと短くできます</li>
     <li>小さなパソコン(ラズパイ)を使う場合は、本体代が別にかかります。電気代はわずかです</li>
   </ul>
   <p class="muted">金額は発表者の場合の目安です。使い方やAIの料金改定で変わります。</p>
@@ -331,40 +352,29 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </section>
 
 <section id="need">
-  <h2>5. 必要なもの(発表者の環境)</h2>
+  <h2><span class="no">5</span>必要なもの(発表者の環境)<img class="h2ic" src="img/i_cloud.png" alt="" width="44" height="44"></h2>
   <p>ポスターでは「パソコン・AI・ラズパイ・スマホ」と短く書きました。ここでは、発表者の実際の環境をくわしく載せます。</p>
   <h3>機器と、それぞれの役目</h3>
   <div class="env">
-    <div><b>作る: パソコン(CPU Intel N100/メモリ 8GB)</b>この性能で、アプリ作りは問題なくできました。作る作業の重い部分は、ネットの先のAIが行うためです。</div>
-    <div><b>作るAI: Claude Code(Claude Pro 月約3,000円)</b>パソコンの中で、ファイル作り・動作の確認・直しまで進めてくれます(下の6へ)。</div>
-    <div><b>動かす: ラズパイ(Raspberry Pi 3)</b>家の中で一日中アプリを動かしています。古い型でも動きます。なくても作れます(下の8へ)。</div>
-    <div><b>使う: 子どものスマホ・親のスマホ</b>子どもはブラウザでアプリを開くだけ。親には LINE で知らせが届きます。</div>
+    <div class="ico"><img src="img/i_laptop.png" alt="" width="48" height="48"><span><b>作る: パソコン(CPU Intel N100/メモリ 8GB)</b>この性能で、アプリ作りは問題なくできました。作る作業の重い部分は、ネットの先のAIが行うためです。</span></div>
+    <div class="ico"><img src="img/i_cloud.png" alt="" width="48" height="48"><span><b>作るAI: Claude Code(Claude Pro 月約3,000円)</b>パソコンの中で、ファイル作り・動作の確認・直しまで進めてくれます(下の6へ)。</span></div>
+    <div class="ico"><img src="img/i_pi.png" alt="" width="48" height="48"><span><b>動かす: ラズパイ(Raspberry Pi 3)</b>家の中で一日中アプリを動かしています。古い型でも動きます。なくても作れます(下の8へ)。</span></div>
+    <div class="ico"><img src="img/i_phone.png" alt="" width="48" height="48"><span><b>使う: 子どものスマホ・親のスマホ</b>子どもはブラウザでアプリを開くだけ。親には LINE で知らせが届きます。</span></div>
   </div>
 
   <h3>発表者のアプリのつながり(全体図)</h3>
-  <div class="fig map2" role="img" aria-label="パソコンとClaude Codeでアプリを作り、ラズパイに届ける。子どものスマホはラズパイのアプリにつながる。アプリは機能ごとに、会話はClaude Haiku、写真はGemini Flash-Lite、声はGemini Flash TTS、絵日記の絵はOpenRouter経由のGPT-5 Image Mini、予定はGoogleのカレンダーとToDo、知らせはLINEを使う。">
-    <div class="m-top"><span class="node">💻 パソコン<small>+ Claude Code</small></span><span class="m-lab">作って届ける ▶</span><span class="node main">🏠 ラズパイ<small>アプリ本体</small></span></div>
-    <div class="m-mid"><span class="node">📱 子どものスマホ<small>ブラウザで開くだけ</small></span><span class="m-lab">⇄ 話す・押す</span><span class="m-down">▼ アプリが、機能ごとに<br>それぞれのAIへ頼む</span></div>
-    <ul class="m-rows">
-      <li><span class="fn">💬 ふだんの会話<wbr>・しりとり<wbr>・宿題の<wbr>ヒント</span><span class="ar" aria-hidden="true">→</span><span class="sv"><b>Claude Haiku 5.5</b><small>Anthropic</small></span></li>
-      <li><span class="fn">📝 絵日記の文<wbr>・毎朝の<wbr>まとめ</span><span class="ar" aria-hidden="true">→</span><span class="sv"><b>Claude Haiku 5.5</b><small>Anthropic</small></span></li>
-      <li><span class="fn">📷 写真の<wbr>読み取り</span><span class="ar" aria-hidden="true">→</span><span class="sv"><b>Gemini 3.5 Flash-Lite</b><small>Google</small></span></li>
-      <li><span class="fn">🔊 キャラの声</span><span class="ar" aria-hidden="true">→</span><span class="sv"><b>Gemini 3.8 Flash TTS</b><small>Google(Qwen を試験中)</small></span></li>
-      <li><span class="fn">🎨 絵日記の絵</span><span class="ar" aria-hidden="true">→</span><span class="sv"><b>GPT-5 Image Mini</b><small>OpenAI(OpenRouter 経由)</small></span></li>
-      <li><span class="fn">📅 予定<wbr>・やること</span><span class="ar" aria-hidden="true">→</span><span class="sv"><b>カレンダー・ToDo</b><small>Google(Apps Script 経由)</small></span></li>
-      <li><span class="fn">📣 親への<wbr>知らせ</span><span class="ar" aria-hidden="true">→</span><span class="sv"><b>LINE</b><small>親のスマホに届く</small></span></li>
-    </ul>
-    <p class="m-note">AIはどれも有料のAPI(使った分だけ)。全部で月 約300円です。</p>
-  </div>
+  <a class="mapimg" href="img/map.svg"><img src="img/map.svg" alt="発表者のアプリのつながりの図。パソコンとClaude Codeで作ってラズパイに届ける。子どものスマホはラズパイのアプリとやり取りする。アプリは機能ごとに別のAIへ頼む。会話・しりとり・宿題のヒント・絵日記の文・毎朝のまとめはClaude Haiku 5.5(10月30日にGeminiから変更)、写真の読み取りはGemini 3.5 Flash-Lite、キャラの声はGemini 3.8 Flash TTS、絵日記の絵はOpenRouter経由のGPT-5 Image Mini、予定とやることはGoogleのカレンダーとToDo、親への知らせはLINE。AIはどれも使った分だけ料金がかかる。" width="600" height="1018"></a>
+  <p class="muted" style="text-align:center;margin:6px 0 12px">図を押すと大きく開きます</p>
+  <p>会話・しりとり・宿題のヒントなどは、<b>2026年10月30日に、Gemini(3.5 Flash-Lite)から Claude(Haiku 5.5)に切りかえました。</b>このように、使いながらAIを入れかえることもできます。くわしい経緯は下にあります。</p>
   <details id="why-claude">
-    <summary>会話を Gemini から Claude に変えた理由</summary>
-    <p>最初は、会話もすべて Gemini の安いモデル(Flash-Lite)で動かしていました。<b>キャラになりきって話すのは、今でも Gemini のほうが上手</b>だと感じています。値段も安く、宿題の件がなければ Gemini のままでよいと考えていました。</p>
-    <p>宿題のヒント機能を作ったとき、安いモデルは「答えを言ってしまう」「正しい答えを間違いと言う」ことが多くありました。</p>
+    <summary>会話を Gemini から Claude に変えた理由(10月30日)</summary>
+    <p>最初は、会話もすべて Gemini の安いモデル(Flash-Lite)で動かしていました。<b>キャラになりきって話すのは、今でも Gemini のほうが上手</b>だと感じています。値段も安く、Gemini のままで十分だと考えていました。ただ、次のことがあって切りかえました。</p>
+    <p><b>きっかけは宿題のヒント機能です。</b>この機能を作ったとき、安いモデルは「答えを言ってしまう」「正しい答えを間違いと言う」ことが多くありました。</p>
     <p>上のモデル(Gemini Flash)にするとよくなりましたが、値段が約2.5倍で、2027年からはさらに倍に上がる予定でした。そこで、同じ試験を Claude の安いモデル(Haiku)でも行いました。宿題もふだんの会話も問題なかったため、2026年10月末に会話を Claude に切りかえました。写真の読み取りは Gemini のままです。</p>
     <p class="note"><b>TIPS</b> AIには、それぞれ得意なことがあります。キャラのなりきりなら Gemini、決まりを守った受け答えなら Claude、のように、<b>機能ごとに合うAIを選ぶ</b>のがおすすめです。使いながら入れかえることもでき、その作業も Claude Code に頼めます。</p>
   </details>
 
-  <h3>APIとAPIキーって何?</h3>
+  <h3 class="h3ic"><img src="img/i_key.png" alt="" width="40" height="40">APIとAPIキーって何?</h3>
   <p>アプリが、ネットの先のAIに「この返事を考えて」と頼むときの<b>注文の窓口</b>が API です。その窓口を使うための<b>会員カード</b>が APIキー(キー=鍵とも呼ばれます)です。</p>
   <div class="fig" role="img" aria-label="子どもが話す、家のアプリが会員カード(APIキー)を付けてAIの会社に注文、AIの会社が返事を作って返す、キャラが返事をする、の4段階の図">
     <p class="cap">アプリの中で起きていること</p>
@@ -399,17 +409,17 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </section>
 
 <section id="ai">
-  <h2>6. 作るAIの選び方</h2>
+  <h2><span class="no">6</span>作るAIの選び方<img class="h2ic" src="img/i_laptop.png" alt="" width="44" height="44"></h2>
   <p>よく聞く Claude(クロード)、ChatGPT(チャットGPT)、Gemini(ジェミニ)は、どれも「話しかけると答えてくれるAI」です。アプリ作りで大事なのは、<b>パソコンの中で実際に作業までしてくれる道具</b>があるかどうかです。</p>
   <div class="vc">
-    <div class="vcard"><h3>Claude(話す)/ Claude Code(作業まで)</h3><p class="muted" style="margin:0 0 4px">Anthropic</p><p class="one">◎ 発表者が使用。説明が丁寧で、確認しながら進めやすい</p></div>
-    <div class="vcard"><h3>ChatGPT(話す)/ Codex(コーデックス・作業まで)</h3><p class="muted" style="margin:0 0 4px">OpenAI</p><p class="one">◎ 有名で情報が多い。Claude と並ぶ候補</p></div>
-    <div class="vcard"><h3>Gemini(話す)/ Gemini CLI(作業まで)</h3><p class="muted" style="margin:0 0 4px">Google</p><p class="one">△ 今のところ、こうしたアプリ作り(プログラム作り)には、あまり向いていない印象です</p></div>
+    <div class="vcard good"><h3>Claude(話す)/ Claude Code(作業まで)</h3><p class="muted" style="margin:0 0 4px">Anthropic</p><p class="one">◎ 発表者が使用。説明が丁寧で、確認しながら進めやすい</p></div>
+    <div class="vcard good"><h3>ChatGPT(話す)/ Codex(コーデックス・作業まで)</h3><p class="muted" style="margin:0 0 4px">OpenAI</p><p class="one">◎ 有名で情報が多い。Claude と並ぶ候補</p></div>
+    <div class="vcard so"><h3>Gemini(話す)/ Gemini CLI(作業まで)</h3><p class="muted" style="margin:0 0 4px">Google</p><p class="one">△ 今のところ、こうしたアプリ作り(プログラム作り)には、あまり向いていない印象です</p></div>
   </div>
   <h3>「話すAI」と「作業までするAI」の違い</h3>
   <div class="vs">
     <div>
-      <h4>💬 話すAI</h4><p class="who">Claude / ChatGPT / Gemini(ふだんスマホで使っている、あのAI)</p>
+      <h4 class="h3ic"><img src="img/i_phone.png" alt="" width="28" height="28">話すAI</h4><p class="who">Claude / ChatGPT / Gemini(ふだんスマホで使っている、あのAI)</p>
       <ol>
         <li><span class="me">あなた</span>: 「保護者会のお知らせ文、下書きを手伝って」</li>
         <li><span class="bot">AI</span>: 下書きを<b>文章で</b>出す</li>
@@ -421,7 +431,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
       <p class="end">手を動かすのは、あなた。</p>
     </div>
     <div>
-      <h4>🛠 作業までするAI</h4><p class="who">Claude Code / Codex</p>
+      <h4 class="h3ic"><img src="img/i_laptop.png" alt="" width="28" height="28">作業までするAI</h4><p class="who">Claude Code / Codex</p>
       <ol>
         <li><span class="me">あなた</span>: 「〇〇を作りたい」</li>
         <li><span class="bot">AI</span>: パソコンの中にファイルを作る</li>
@@ -443,7 +453,18 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </section>
 
 <section id="voice">
-  <h2>7. 声の比較</h2>
+  <h2><span class="no">7</span>声の比較</h2>
+  <h3 style="margin-top:0">聞き比べ</h3>
+  <p>同じ文を、それぞれの声のAIで読ませました。1つの文の中に「ふつう」「元気」「ささやき」の部分があります。</p>
+  <p class="sample-text"><span class="seg">こんにちは、今日もお話ししようね。<small>ふつう</small></span><span class="seg">えっ、テストで百点だったの? すごい、やったね!<small>元気</small></span><span class="seg">しーっ、あそこに猫がいるよ。そーっと触ってみよう。<small>ささやき</small></span></p>
+  <div class="listen">
+    <div><b>Gemini 3.8 Flash TTS</b><small>話し方の指示欄で「ここから元気に」「ここからささやき声で」と指定</small><audio controls preload="none" src="audio/gemini.mp3"></audio></div>
+    <div><b>Qwen3.1 TTS Flash(公式・無料分)</b><small>文の頭に感情の印([excited] [whispers])を付けて、3つに分けて読ませたもの</small><audio controls preload="none" src="audio/qwen_official.mp3"></audio></div>
+    <div><b>Qwen3-TTS(DeepInfra 経由・身分証なし)</b><small>指示なし。文章だけ。話し方はあまり変えられない</small><audio controls preload="none" src="audio/qwen_deepinfra.mp3"></audio></div>
+    <div><b>Microsoft(Azure)・Cartesia</b><small>見本は準備中です</small></div>
+  </div>
+  <p class="muted">声は、どれも各社が用意している声です。2026年11月3日に作成。</p>
+  <h3>くらべる表</h3>
   <p class="note"><b>2026年11月2日に調べた時点の情報です。</b>料金や無料枠はよく変わります。使う前に、各社の公式ページで最新の情報を確認してください。</p>
   <div class="vc">
     <div class="vcard"><h3>Gemini(Google)</h3><p class="muted" style="margin:0 0 4px">声のAI: Gemini 3.8 Flash TTS(発表者が使用)。ひとつ前の 3.1 Flash TTS もあり</p><p class="one">とても自然・遅め・有料</p><dl><dt>無料で使える分</dt><dd>なし(有料で使う前提)</dd><dt>1時間分の声の目安</dt><dd>約130円<span class="up">2027年1月から約2倍(約260円)に値上がり予定</span></dd><dt>本人確認</dt><dd>不要</dd><dt>感情の表現</dt><dd>「楽しそうに」「ささやくように」など、文章で指示できる</dd><dt>返ってくる速さ</dt><dd>遅め(数秒〜10秒ほど)</dd></dl></div>
@@ -462,7 +483,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </section>
 
 <section id="nopi">
-  <h2>8. ラズパイはなくても大丈夫</h2>
+  <h2><span class="no">8</span>ラズパイはなくても大丈夫<img class="h2ic" src="img/i_pi.png" alt="" width="44" height="44"></h2>
   <p><b>ラズパイがあれば便利ですが、なくてもできることはたくさんあります。</b>ラズパイは「家でアプリを一日中つけておく」ための物で、アプリ作りに必須ではありません。</p>
   <details><summary>なしで作る方法を読む</summary>
   <ul class="tight">
@@ -476,7 +497,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </section>
 
 <section id="chara">
-  <h2>9. キャラの用意と性格づけ</h2>
+  <h2><span class="no">9</span>キャラの用意と性格づけ</h2>
   <p>キャラの見た目だけでなく、<b>性格や口調も、AIと相談しながら決められます。</b>「この子が安心して話せるキャラにしたい。性格を3案出して」のように頼めます。</p>
   <div class="note"><b>TIPS: キャラの設定と「やり取りの見本」をセットで渡す</b>
   <p style="margin:6px 0">AIは、性格を文章で説明するだけより、<b>「こう聞かれたら、こう返す」という見本</b>を一緒に渡すと、ぐっとキャラらしく話します。発表者の娘アプリでも、ここが一番効きました。</p>
@@ -498,9 +519,8 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </section>
 
 <section id="trouble">
-  <h2>10. つまずきやすい所</h2>
+  <h2><span class="no">10</span>つまずきやすい所</h2>
   <details><summary>くわしく読む</summary>
-  <img class="pic" src="img/sleep.png" alt="寝ている間にAIが作業しているイラスト" width="420" height="280">
   <ul class="tight">
     <li><b>APIの登録が英語</b>: ブラウザを操作できるAIに、画面を見ながら案内してもらえます</li>
     <li><b>声選び</b>: 一番時間がかかりました。上の比較表で候補をしぼると早く決まります。安くても、身分証の提出が必要な所があります</li>
@@ -514,9 +534,10 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </section>
 
 <section id="sample">
-  <h2>11. 見本: 発表者と同じ形のアプリを作りたい方へ(参考)</h2>
-  <p class="note">キャラの性格づけのコツは「9. キャラの用意と性格づけ」にあります。<br>これは<b>参考</b>です。おすすめは、上の「2. 指示文づくりツール」で、その子に合わせた最初の文章を作る方法です。発表者と同じ「キャラが窓口」の形にしたいと決まっている方だけ、こちらを使ってください。</p>
-  <p>下の文章を使うと、ほぼこのまま進められます。<b>［ ］の中だけ</b>、その子に合わせて書きかえてください(【 】は見出しなので、そのままで大丈夫です)。</p>
+  <h2><span class="no">11</span>見本: 発表者のアプリに近いものを作りたい方へ(参考)</h2>
+  <p class="note">キャラの性格づけのコツは「9. キャラの用意と性格づけ」にあります。<br>これは<b>参考</b>です。おすすめは、上の「2. 指示文づくりツール」で、その子に合わせた最初の文章を作る方法です。</p>
+  <p>発表者のアプリにほぼ近いものを<b>試しに作ってみたい方</b>は、下の文章の<b>［ ］の中</b>を書き直して貼れば、似たものができると思います(【 】は見出しなので、そのままで大丈夫です)。</p>
+  <p class="spec"><b>かかる時間の目安(Claude Code)</b><br>最初の会話と「こまった」ボタンまで: 約3〜5時間<br>下の機能をひととおり: 約15〜20時間<br><span class="muted">発表者は声選びなどの試行錯誤を含めて約30時間でした。AIからの質問に答える時間も含みます。</span></p>
   <p class="note">APIキー(AIを使うための鍵)の発行や支払いの登録は、ご自身で行います。AIが手順を案内します。</p>
   <details>
     <summary>見本の文章を開く</summary>
@@ -526,7 +547,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 技術の選び方はあなたが決めて、理由を一言だけ添えてください。
 
 【使う人】［小学4年生の子ども本人。見守るのは父と母］
-【好きなもの】［好きなキャラ、電車、しりとり］
+【好きなもの】［アニメ、しりとり］
 【今持っている機器】［パソコン、子ども用のスマホ、親のスマホ］
 【その子のこと】［困っていても自分から言えない。順序立てて話すのが苦手。予定の切りかえが苦手。言葉やタイピングは得意］
 
@@ -534,14 +555,15 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 好きなキャラ(3Dで動くキャラ)が窓口になり、話しかけると色々な機能につながる、子ども専用の話し相手アプリです。子どものスマホのブラウザで使います。最初は会話だけを作り、下の機能を1つずつ足せる作りにしてください。
 
 【入れたい機能(足す順番は相談したい)】
-1. キャラとの会話(文字と声)。キャラの性格・口調は私と相談して決め、その設定と「やり取りの見本」(5〜10個)も一緒に作る
+1. キャラとの会話(文字と声)。声で話しかけることもできる。キャラの性格・口調は私と相談して決め、その設定と「やり取りの見本」(5〜10個)も一緒に作る。会話に合わせてキャラの表情や動きを変える。画面の文字は、年齢に合わせてひらがな中心にする
 2. 「こまった」ボタン。押すと親のスマホに知らせが届き、押せたことをキャラがほめる
 3. ふつうの会話の中に心配な言葉が出たら、親に知らせる(知らせすぎないよう回数を制限する)
 4. 「だれと・どこで・なにを」と順番に聞いて、話をまとめる手伝い
 5. 予定の残り時間が目で分かる表示と、やることリスト
 6. その日の会話から、絵日記を自動で作る
 7. しりとり(得意なことで自信をつける)
-8. 宿題のヒント(答えは言わず、段階的にヒントを出す)
+8. 宿題のヒント(答えは言わず、段階的にヒントを出す。プリントの写真を送ると問題を読み取る)
+10. 写真を送ると、キャラが写真について話してくれる
 9. 毎朝、前日の様子のまとめを親に届ける。会話の記録を親だけが見られるページ
 
 【安全のために】
@@ -553,6 +575,8 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 【作り方の希望】
 ・家の中で一日中動かすために、小さなパソコン(ラズパイ)を使う案を考えています。ただし、本当に必要かを先に確認してください。必要なら、理由と費用を示してから私に確認してください。
 ・外出先から使うかどうかも相談したいです。
+・予定とやることは Googleカレンダー・ToDo から読み、親への知らせは LINE で届けたいです。ほかによい方法があれば提案してください。
+・会話のAIは、キャラのなりきりの上手さ・決まりを守れるか・費用を比べて選んでください。機能ごとに別のAIを使ってもかまいません。
 ・声は、Gemini、Qwen、Microsoft、Cartesia の4つを候補に、無料枠、本人確認の有無、声の自然さ、感情の表現、返ってくる速さを最新の公式情報で確認して比べてください。ほかによいものがあれば提案してください。
 ・月々の費用は、できれば［数百円］までにしたいです。
 
