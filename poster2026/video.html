@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>紹介動画|AIでつくる その子専用のアプリ開発</title>
+<meta name="description" content="第24回 高知ふくし機器展のポスター発表「AIでつくる その子専用のアプリ開発」の紹介動画です。">
+<style>
+:root{
+  --green:#11532f; --green-l:#e6f0e8; --orange:#e8892b; --orange-l:#fff0dc; --orange-d:#8a4705;
+  --cream:#faf7f0; --ink:#1f2a24; --muted:#4a574f; --line:#ddd5c4; --white:#fff;
+  --warn-bg:#fff1c9; --warn-ink:#5b4300; --focus:#1d5fd0; --btn-ink:#fff; --navy:#1d2e4a; --navy-ink:#fff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --green:#9fe0b4; --green-l:#3a4f43; --orange-l:#4a3418; --orange-d:#f3bd80;
+    --cream:#1f2b25; --ink:#f3f7f4; --muted:#d8e2db; --line:#5c7266; --white:#2f4037;
+    --warn-bg:#5a4a1a; --warn-ink:#ffeeb8; --focus:#ffd76a; --btn-ink:#0d2216; --navy:#22344f; --navy-ink:#eef3fb;
+  }
+}
+:root[data-theme="dark"]{
+  --green:#9fe0b4; --green-l:#3a4f43; --orange-l:#4a3418; --orange-d:#f3bd80;
+  --cream:#1f2b25; --ink:#f3f7f4; --muted:#d8e2db; --line:#5c7266; --white:#2f4037;
+  --warn-bg:#5a4a1a; --warn-ink:#ffeeb8; --focus:#ffd76a; --btn-ink:#0d2216; --navy:#22344f; --navy-ink:#eef3fb;
+}
+*{box-sizing:border-box}
+img{max-width:100%;height:auto}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--cream);color:var(--ink);line-height:1.8;font-size:17px;
+  font-family:"BIZ UDPGothic","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 64px}
+a{color:var(--green);text-underline-offset:3px}
+a:focus-visible,button:focus-visible,summary:focus-visible,textarea:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.top{font-size:.95rem;margin:0 0 14px}
+.hero{display:grid;grid-template-columns:1fr 150px;gap:12px;align-items:center;margin-bottom:18px}
+.hero img{width:150px;height:auto}
+.kicker{margin:0;color:var(--orange-d);font-weight:700;font-size:.95rem}
+h1{font-size:1.7rem;line-height:1.35;margin:4px 0 6px;color:var(--green)}
+.by{margin:0;color:var(--muted);font-size:.95rem}
+.key{background:var(--navy);color:var(--navy-ink);border-radius:16px;padding:16px 18px;font-size:1.15rem;font-weight:700;line-height:1.6;margin:0 0 18px}
+nav.toc{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin-bottom:22px}
+nav.toc p{margin:0 0 4px;font-weight:700}
+nav.toc ol{margin:0;padding-left:1.4em;columns:2;column-gap:20px}
+nav.toc li{break-inside:avoid}
+section{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:20px 18px;margin-bottom:18px;scroll-margin-top:12px}
+h2{font-size:1.3rem;line-height:1.4;margin:0 0 10px;color:var(--green)}
+h3{font-size:1.05rem;margin:18px 0 6px}
+p{margin:0 0 12px}
+.muted{color:var(--muted);font-size:.95rem}
+.note{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 13px;font-size:.95rem;margin:0 0 14px}
+video{width:100%;max-width:360px;display:block;margin:0 auto 10px;border-radius:12px;background:#000}
+.btn{display:inline-block;background:var(--green);color:var(--btn-ink);text-decoration:none;font-weight:700;border-radius:10px;padding:12px 18px;min-height:48px;border:2px solid var(--green)}
+.btn.sec{background:transparent;color:var(--green)}
+button.btn{font:inherit;cursor:pointer}
+.flow{list-style:none;margin:0;padding:0;counter-reset:f}
+.flow>li{position:relative;padding:0 0 16px 46px;counter-increment:f}
+.flow>li::before{content:counter(f);position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;background:var(--orange);color:#1f2a24;font-weight:700;display:grid;place-items:center}
+.flow>li::after{content:"";position:absolute;left:15px;top:36px;bottom:4px;border-left:2px dashed var(--line)}
+.flow>li:last-child::after{display:none}
+.flow b{display:block}
+.say{border-radius:12px;padding:8px 12px;margin:6px 0;font-size:.95rem;line-height:1.65}
+.say.me{background:var(--orange-l);margin-left:18px}
+.say.ai{background:var(--green-l);margin-right:18px}
+.say .who{display:block;font-size:.8rem;font-weight:700;color:var(--muted)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+.cmp div{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+.cmp b{display:block;color:var(--green)}
+.tbl{overflow-x:auto;margin:6px 0 10px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem;line-height:1.55}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+thead th{background:var(--green-l)}
+tbody th{white-space:nowrap}
+details{border:1.5px solid var(--line);border-radius:12px;padding:0 14px;margin:10px 0}
+details[open]{padding-bottom:12px}
+summary{cursor:pointer;font-weight:700;padding:12px 0;min-height:48px}
+textarea{width:100%;min-height:340px;font:inherit;font-size:.92rem;line-height:1.6;color:var(--ink);background:var(--white);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 0;align-items:center}
+.msg{font-weight:700;color:var(--green);min-height:1.6em;margin:6px 0 0}
+ul.tight{margin:0 0 12px;padding-left:1.3em}
+ul.tight li{margin-bottom:4px}
+.map{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 12px}
+.map div{border-left:5px solid var(--orange);background:var(--orange-l);border-radius:0 10px 10px 0;padding:8px 12px}
+.map b{display:block}
+.pic{float:right;width:130px;margin:0 0 8px 12px}
+.clear{clear:both}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0}
+.tabs button{font:inherit;font-size:.92rem;font-weight:700;cursor:pointer;border:1.5px solid var(--line);background:var(--cream);color:var(--ink);border-radius:10px 10px 0 0;padding:8px 12px;min-height:44px}
+.tabs button[aria-selected="true"]{background:var(--green);color:var(--btn-ink);border-color:var(--green)}
+.tabpanel{border:1.5px solid var(--line);border-radius:0 12px 12px 12px;padding:12px 14px;margin:0 0 10px}
+.tabpanel h3{margin:0 0 6px}
+.tabpanel .after{font-size:.9rem;color:var(--muted);margin:8px 0 0}
+.vlink{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center;text-decoration:none;color:var(--ink);border:1.5px solid var(--line);border-radius:12px;padding:10px}
+.vlink img{width:120px;border-radius:8px;display:block}
+.vlink b{display:block;color:var(--green);font-size:1.1rem}
+.spec{border:1.5px dashed var(--orange);border-radius:12px;padding:10px 14px;margin:0 0 12px}
+.spec b{color:var(--orange-d)}
+.vc{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 12px}
+.vcard{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px}
+.vcard h3{margin:0 0 4px;color:var(--green)}
+.vcard .one{margin:0 0 4px;font-weight:700}
+.vcard dl{margin:0}
+.vcard dt{font-size:.85rem;color:var(--muted);margin-top:6px}
+.vcard dd{margin:0}
+.up{display:block;color:var(--orange-d);font-weight:700}
+nav.toc a{display:block;padding:8px 0;min-height:44px}
+nav.toc li{margin:0}
+.top a,footer a{display:inline-block;padding:10px 0}
+.back{text-align:right;margin:8px 0 0;font-size:.95rem}
+.sum{margin:-6px 0 18px}
+footer{font-size:.92rem;color:var(--muted);margin-top:22px}
+@media (max-width:520px){
+  .hero{grid-template-columns:1fr 96px}.hero img{width:96px}
+  h1{font-size:1.45rem}
+  nav.toc ol{columns:1}
+  .cmp,.map{grid-template-columns:1fr}
+  .pic{float:none;display:block;width:150px;margin:0 auto 12px}
+  .vc{grid-template-columns:1fr}
+  .btn{display:block;width:100%;text-align:center;min-height:52px;font-size:1.05rem}
+}
+main{max-width:520px}
+.big{display:block;text-align:center;margin:14px 0}
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">第24回 高知ふくし機器展 ポスター発表</p>
+<h1>紹介動画<br><span style="font-size:1.1rem">AIでつくる その子専用のアプリ開発</span></h1>
+<video controls playsinline preload="metadata" poster="img/app.jpg" src="video.mp4">お使いのブラウザでは動画を再生できません。</video>
+<p class="muted">約2分20秒・音が出ます。実際の娘には好きなアニメのキャラを使っていますが、公開できないため、ここでは無料のキャラ(VRoidの見本キャラ)で表示しています。登場する子ども「ひなた」は架空です。</p>
+<p><a class="btn big" href="index.html">作り方・費用・声の比較を見る</a></p>
+<footer>
+  <p>※ このアプリは、医療・療育の代わりではありません。</p>
+  <p><a href="../index.html">高知発達ブース トップへ</a></p>
+</footer>
+</main>
+</body>
+</html>
