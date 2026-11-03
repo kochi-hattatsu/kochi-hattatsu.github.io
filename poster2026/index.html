@@ -461,7 +461,8 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
     <div><b>Gemini 3.8 Flash TTS</b><small>話し方の指示欄で「ここから元気に」「ここからささやき声で」と指定</small><audio controls preload="none" src="audio/gemini.mp3"></audio></div>
     <div><b>Qwen3.1 TTS Flash(公式・無料分)</b><small>文の頭に感情の印([excited] [whispers])を付けて、3つに分けて読ませたもの</small><audio controls preload="none" src="audio/qwen_official.mp3"></audio></div>
     <div><b>Qwen3-TTS(DeepInfra 経由・身分証なし)</b><small>指示なし。文章だけ。話し方はあまり変えられない</small><audio controls preload="none" src="audio/qwen_deepinfra.mp3"></audio></div>
-    <div><b>Microsoft(Azure)・Cartesia</b><small>見本は準備中です</small></div>
+    <div><b>Microsoft(Azure)Nanami</b><small>読み方の指定(SSML)で、ふつう=おしゃべり調・元気=明るく。ささやき声の種類は無いので、小さく・ゆっくりで代用</small><audio controls preload="none" src="audio/azure.mp3"></audio></div>
+    <div><b>Cartesia(Sonic 3.6)Emi</b><small>3つに分けて読ませたもの。元気は「感情: わくわく」、ささやきは音量を下げて・ゆっくりで代用</small><audio controls preload="none" src="audio/cartesia.mp3"></audio></div>
   </div>
   <p class="muted">声は、どれも各社が用意している声です。2026年11月3日に作成。</p>
   <h3>くらべる表</h3>
@@ -470,7 +471,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
     <div class="vcard"><h3>Gemini(Google)</h3><p class="muted" style="margin:0 0 4px">声のAI: Gemini 3.8 Flash TTS(発表者が使用)。ひとつ前の 3.1 Flash TTS もあり</p><p class="one">とても自然・遅め・有料</p><dl><dt>無料で使える分</dt><dd>なし(有料で使う前提)</dd><dt>1時間分の声の目安</dt><dd>約130円<span class="up">2027年1月から約2倍(約260円)に値上がり予定</span></dd><dt>本人確認</dt><dd>不要</dd><dt>感情の表現</dt><dd>「楽しそうに」「ささやくように」など、文章で指示できる</dd><dt>返ってくる速さ</dt><dd>遅め(数秒〜10秒ほど)</dd></dl></div>
     <div class="vcard"><h3>Qwen(Alibaba)</h3><p class="muted" style="margin:0 0 4px">声のAI: Qwen3.1 TTS Flash(公式)/Qwen3-TTS(別サイト経由)</p><p class="one">自然・とても速い・安い</p><dl><dt>公式(Alibaba Cloud)</dt><dd>新規登録から期限つきの無料分あり。1時間 約20円(安い型)。返ってくる速さはとても速い。感情は英語の決まった印(例: [happy])を文の前に付けて指定できる</dd><dt>本人確認</dt><dd>公式で有料分を使うには、身分証(免許証など)の提出を求められることがある。無料のブラウザ版(チャット)は、アプリからは使えない</dd><dt>身分証を出したくない場合</dt><dd>別のサイト(DeepInfra など)経由で使える。1時間 約75円、事前チャージ式(5ドル〜)。声色や話し方の指示はほぼ効かない。速さは1〜2秒ほど</dd></dl></div>
     <div class="vcard"><h3>Microsoft(Azure)</h3><p class="muted" style="margin:0 0 4px">声のAI: Azure AI Speech(ニューラル音声)</p><p class="one">標準的・速い・無料枠が大きい</p><dl><dt>無料で使える分</dt><dd>毎月の無料枠あり(公式では月50万文字。超えた分は有料)</dd><dt>本人確認</dt><dd>不要(カードの登録あり)</dd><dt>感情の表現</dt><dd>日本語の声(Nanami など)は「おしゃべり風・明るく・接客風」の3種類だけ。悲しい・怒るなどは選べない</dd><dt>返ってくる速さ</dt><dd>速い</dd><dt>備考</dt><dd><b>カタコト感(機械っぽい読み方)が強めです。</b>キャラの声としては物足りないことがあります</dd></dl></div>
-    <div class="vcard"><h3>Cartesia</h3><p class="muted" style="margin:0 0 4px">声のAI: Sonic 3</p><p class="one">自然・とても速い・無料プランあり</p><dl><dt>無料で使える分</dt><dd>無料プランあり(月2万文字=約50分。お金をもらわない個人の利用向け)</dd><dt>1時間分の声の目安</dt><dd>有料プランは月5ドル(約750円)で10万文字から</dd><dt>本人確認</dt><dd>不要</dd><dt>感情の表現</dt><dd><b>文章の中身から自動で感情を読み取る</b>方式。感情を指定する印もあるが、公式では英語だけ対応</dd><dt>返ってくる速さ</dt><dd>とても速い(1秒以内)</dd></dl></div>
+    <div class="vcard"><h3>Cartesia</h3><p class="muted" style="margin:0 0 4px">声のAI: Sonic 3.6</p><p class="one">自然・とても速い・無料プランあり</p><dl><dt>無料で使える分</dt><dd>無料プランあり(月2万文字=約50分。お金をもらわない個人の利用向け)</dd><dt>1時間分の声の目安</dt><dd>有料プランは月5ドル(約750円)で10万文字から</dd><dt>本人確認</dt><dd>不要</dd><dt>感情の表現</dt><dd><b>文章の中身から自動で感情を読み取る</b>方式。感情を指定する印もあるが、公式では英語だけ対応</dd><dt>返ってくる速さ</dt><dd>とても速い(1秒以内)</dd></dl></div>
   </div>
   <ul class="tight muted">
     <li>1時間分は、約2.4万文字、1ドル150円で計算した目安です。</li>
