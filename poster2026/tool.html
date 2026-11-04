@@ -88,7 +88,7 @@ label.c small{display:block;color:var(--muted);font-size:.95rem;line-height:1.5}
     <h2 tabindex="-1">その子のこと</h2>
     <p class="note">書いた内容は、この画面の外には送られません。ただし、できた文章をAIに渡すとAIには伝わります。本名や学校名は書かないでください。</p>
     <div class="field">
-      <label class="t" for="who">誰が使いますか<span class="ex">例: 小学4年生の子ども本人</span></label>
+      <label class="t" for="who">誰が使いますか<span class="ex">例: 小学生の子ども本人</span></label>
       <input type="text" id="who" maxlength="100">
     </div>
     <div class="field">
@@ -132,7 +132,7 @@ label.c small{display:block;color:var(--muted);font-size:.95rem;line-height:1.5}
     <p class="sub">最初から「分からない」が選んであります。そのままで大丈夫です。あとから変えられます。</p>
     <fieldset class="field">
       <legend>アプリの形</legend>
-      <span class="ex">発表者の娘アプリは「キャラが窓口」の形ですが、どの子にもこの形が合うとは限りません。</span>
+      <span class="ex">発表者のアプリは「キャラが窓口」の形ですが、どの子にもこの形が合うとは限りません。</span>
       <div class="choices" id="form"></div>
     </fieldset>
     <fieldset class="field">
@@ -183,7 +183,7 @@ label.c small{display:block;color:var(--muted);font-size:.95rem;line-height:1.5}
   var step = 0, last = 3, edited = false, dirty = false, removed = '';
   var FORM = [
     ['single', '1つのアプリ', '困りごとに合わせた、必要な機能だけのシンプルなもの'],
-    ['hub', 'キャラが窓口', '娘アプリの形。話しかけると、予定・しりとりなど色々な機能につながる'],
+    ['hub', 'キャラが窓口', '発表者のアプリの形。話しかけると、予定・しりとりなど色々な機能につながる'],
     ['unknown', '分からない', '困りごとを聞いてから、合う形をAIに提案してもらう']
   ];
   var PI = [
