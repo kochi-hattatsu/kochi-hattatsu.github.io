@@ -353,6 +353,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
     <li>1回あたりの目安: 会話 0.04〜0.35円、声 0.12円、写真の読み取り 0.1円、絵日記 7円</li>
     <li>小さなパソコン(ラズパイ)を使う場合は、本体代が別にかかります。電気代はわずかです</li>
   </ul>
+  <p class="note"><b>まずは無料でためしたい方へ:</b> 簡単なものなら、無料版のチャットとコピペでも作れます。手順と見本は「<a href="#free">6. 作るAIの選び方</a>」の下にあります。</p>
   <p class="muted">金額は発表者の場合の目安です。使い方やAIの料金改定で変わります。</p>
   <p class="back"><a href="#toc">▲ 中身の一覧へ</a></p>
 </section>
@@ -454,6 +455,32 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
     <li><b>迷ったら</b>: Claude か ChatGPT のどちらかで大丈夫です。最初の相談(指示文づくりツールで作った文章)を両方の無料版に貼って、話しやすいほうを選ぶ方法もあります。</li>
     <li><b>アプリの中で使うAI</b>は、作るAIとは別に、機能ごとに選べます。発表者の組み合わせは、上の「5. 必要なもの」に載せています。</li>
   </ul>
+  <h3 id="free">無料でためすなら(コピペで作る)</h3>
+  <p>いきなり月3,000円を払うのは、ハードルが高いですよね。<b>簡単なものなら、無料版のチャット(ChatGPT・Claude・Gemini)でも作れます。</b>AIが書いたものを自分でコピーして貼る手間は増えますが、「本当に作れるんだ」を体験するには十分です。</p>
+  <ol class="tight">
+    <li>下の文章をコピーして、無料版のチャットに貼る(やることなどは書きかえてOK)</li>
+    <li>AIが出した長い文章(コード)を、右上の「コピー」ボタンで全部コピーする</li>
+    <li>パソコンのメモ帳に貼り、「したく.html」という名前で保存する(種類は「すべてのファイル」)</li>
+    <li>できたファイルをダブルクリックすると、ブラウザで開いて動きます</li>
+    <li>直したいところは「〇〇を変えて。全部書き直して出して」と頼み、2〜4をくり返す</li>
+  </ol>
+  <details>
+    <summary>無料版で使う見本の文章を開く</summary>
+    <label for="freeText" class="muted">AIに渡す文章(ここで直せます)</label>
+    <textarea id="freeText" spellcheck="false" style="min-height:220px">子ども用の「朝のしたくチェック表」を、1つのHTMLファイルで作ってください。
+
+・やること: はみがき、きがえ、もちもの(あとで私が書きかえられるように)
+・押すとチェックが付き、全部終わったら「できたね!」と大きく出る
+・字はひらがな中心で大きく、ボタンも大きく
+・次の日に、チェックを最初からやり直せるボタンも付ける
+
+私はプログラミングが分かりません。完成したコードを全部1つにまとめて出し、保存して開く手順も、専門用語を使わずに教えてください。</textarea>
+    <div class="acts">
+      <button type="button" class="btn" id="copyFree">文章をコピー</button>
+    </div>
+    <p class="msg" id="freeMsg" role="status" aria-live="polite"></p>
+  </details>
+  <p class="muted">無料版でむずかしいのは、AIの声で話す・LINEに知らせる・毎朝自動で動く、のように、外のサービスとつなぐものです。こうしたものを作りたくなったら、有料の作るAI(Claude Code・Codex)を考えてみてください。スマホで使いたいときは、AIに「このファイルをスマホで使う方法を教えて」と聞くと案内してくれます。</p>
   <p class="muted">2026年11月時点の情報です。</p>
   <p class="back"><a href="#toc">▲ 中身の一覧へ</a></p>
 </section>
@@ -691,13 +718,18 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
   });
 })();
 (function () {
-  var b = document.getElementById('copySample'), t = document.getElementById('sampleText'), m = document.getElementById('sampleMsg');
-  function done(ok) { m.textContent = ok ? 'コピーしました。メールやLINEで自分に送ると、パソコンで開けます。' : 'コピーできませんでした。文章を長押しして選んでください。'; }
-  b.addEventListener('click', function () {
-    function fb() { t.focus(); t.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} done(ok); }
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t.value).then(function () { done(true); }, fb);
-    else fb();
-  });
+  function setup(bid, tid, mid, okMsg) {
+    var b = document.getElementById(bid), t = document.getElementById(tid), m = document.getElementById(mid);
+    if (!b) return;
+    function done(ok) { m.textContent = ok ? okMsg : 'コピーできませんでした。文章を長押しして選んでください。'; }
+    b.addEventListener('click', function () {
+      function fb() { t.focus(); t.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} done(ok); }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t.value).then(function () { done(true); }, fb);
+      else fb();
+    });
+  }
+  setup('copySample', 'sampleText', 'sampleMsg', 'コピーしました。メールやLINEで自分に送ると、パソコンで開けます。');
+  setup('copyFree', 'freeText', 'freeMsg', 'コピーしました。無料版のチャットに貼ってください。');
 })();
 </script>
 </body>
