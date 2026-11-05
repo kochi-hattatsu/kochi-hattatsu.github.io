@@ -2,8 +2,8 @@
 (function () {
   'use strict';
   var TARGET_LABEL = { public: '一般向け(誰でも見られる)', maker: 'メーカー向け', volunteer: 'ボランティア向け', skip: '載せない' };
-  var KINDS = ['お知らせ', 'イベント', '単発イベント', 'タスク', 'その他'];
-  var KIND_HINT = '種類: 高知ふくし機器展=「イベント」(トップ・イベント情報に出る)/勉強会などの単発=「単発イベント」(トップ・みんなのお知らせ掲示板に出る)。日付(終了日)を過ぎると、一般向けのページから自動で消えます。';
+  var KINDS = ['お知らせ', 'イベント', '単発イベント', '機器展の内容', 'タスク', 'その他'];
+  var KIND_HINT = '種類: 高知ふくし機器展そのもの=「イベント」(トップ・イベント情報に出る)/機器展の中のセミナー・展示・地図・資料=「機器展の内容」(機器展のページに出る。終わっても残る)/勉強会などの単発=「単発イベント」(トップ・みんなのお知らせ掲示板に出る)。日付(終了日)を過ぎると、一般向けのお知らせ・掲示板から自動で消えます。';
   var TOPICS = ['配置', '当日の流れ', '相談', '議事録置き場', 'セミナー', '定例会予定', '事務局への回答'];
   var ATTENDS = ['全員参加', '希望者のみ', 'リーダーのみ'];
   var STATUS_LABEL = { active: '公開中', withdrawn: '取り下げ済み' };
@@ -14,6 +14,8 @@
     'last-admin': '管理者の最後の1人は、消したり、役割を下げたりできません。',
     email: 'メールアドレスの形を確認してください。', length: '12文字以上にしてください。',
     text: '内容が空か、長すぎます(12000文字まで)。',
+    imgok: '新しく載せる写真があります。写っている方・個人情報を確認して、「確認しました」にチェックを入れてください。', imgmax: '写真・資料は、1つの内容に6つまでです。', imgid: '写真・資料を確認できませんでした。選び直してください。',
+    imgfail: '写真・資料の保存に失敗しました。時間をおいて、もう一度お試しください。', 'no-token': 'サイトの更新設定が未完了です(サイト更新用のトークン)。',
     files: 'ファイルを読み込めませんでした。画像(写真・スクリーンショット)か、4MBまでのPDFを、8つまで選んでください。合計で約10MBまでです。', failed: 'うまくいきませんでした。時間をおいてお試しください。'
   };
 
@@ -72,6 +74,102 @@
     return d;
   }
 
+  // ---- 写真・資料を載せる(承認・修正・直接入力の画面で使う)
+  var LAYOUTS = { top: '文章の上に、大きく', side: '文章の横に、小さく(パソコンの画面)', bottom: '文章の下に、並べる' };
+  var IMG_MAX = 6;
+  function driveIds(urlStr) {
+    var ids = [];
+    String(urlStr || '').split(/\s+/).forEach(function (u) { var m = /^https:\/\/drive\.google\.com\/file\/d\/([A-Za-z0-9_-]{10,80})/.exec(u); if (m && ids.indexOf(m[1]) < 0) ids.push(m[1]); });
+    return ids;
+  }
+  function toB64(buf) { var b = new Uint8Array(buf), s = '', i; for (i = 0; i < b.length; i += 32768) s += String.fromCharCode.apply(null, b.subarray(i, i + 32768)); return btoa(s); }
+  function prepFile0(f) {   // 画像は縮小(長い辺1600px・JPEG)。PDFはそのまま(4MBまで)
+    if (f.type === 'application/pdf') {
+      if (f.size > 4 * 1024 * 1024) return Promise.reject(new Error('big'));
+      return f.arrayBuffer().then(function (buf) { return { mime: 'application/pdf', b64: toB64(buf), name: f.name }; });
+    }
+    if (!/^image\/(png|jpeg|webp)$/.test(f.type)) return Promise.reject(new Error('type'));
+    return createImageBitmap(f).then(function (bm) {
+      var sc = Math.min(1, 1600 / Math.max(bm.width, bm.height)), c = document.createElement('canvas');
+      c.width = Math.round(bm.width * sc); c.height = Math.round(bm.height * sc);
+      c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height);
+      return new Promise(function (ok, ng) { c.toBlob(function (bl) { bl ? bl.arrayBuffer().then(function (buf) { ok({ mime: 'image/jpeg', b64: toB64(buf), name: f.name }); }) : ng(new Error('img')); }, 'image/jpeg', 0.85); });
+    });
+  }
+  // sourceUrl: 取り込み元のファイル(Drive)のリンク。existing: いま載っているもの。layout: 並べ方。
+  // get() → { images: [...], imgOk, imgLayout, hasNew }。画像は、「載せる」にチェックしたものだけ。
+  function imgPicker(sourceUrl, existing, layout) {
+    existing = existing || [];
+    var wrap = h('details', { class: 'srcbox imgbox' }, [h('summary', { text: '写真・資料を載せる' + (existing.length ? '(いま ' + existing.length + ' 件)' : '') })]);
+    var rows = [], grid = h('div', { class: 'imggrid' }), loaded = false, status = h('p', { class: 'status', role: 'status' });
+    function addRow(o) {
+      var cb = h('input', { type: 'checkbox' }); cb.checked = !!o.checked;
+      var alt = h('input', { type: 'text', maxlength: '80', placeholder: '写真の説明(例: 体験コーナーの様子)', 'aria-label': '写真の説明' }); alt.value = o.alt || '';
+      var thumb = h('div', { class: 'imgthumb' });
+      var row = { cb: cb, alt: alt, src: o.src || '', pdf: o.pdf || '', fid: o.fid || '', pdfCb: null, thumb: thumb };
+      if (o.src) thumb.appendChild(h('img', { src: o.src, alt: '' }));
+      else if (o.pdf) thumb.appendChild(h('span', { class: 'muted', text: 'PDF資料' }));
+      else thumb.appendChild(h('span', { class: 'muted', text: '読み込み中…' }));
+      var lab = h('label', {}, [cb, o.fid ? '載せる(新しい写真・資料)' : '載せる(いま載っているもの)']);
+      var right = h('div', {}, [lab, field('写真の説明(読み上げ・見えないときの代わり)', alt)]);
+      if (o.pdf && o.src) right.appendChild(h('p', { class: 'hint', text: 'PDFの資料つき(写真を押すとPDFが開きます)' }));
+      grid.appendChild(h('div', { class: 'imgrow' }, [thumb, right]));
+      row.right = right; rows.push(row);
+      return row;
+    }
+    existing.forEach(function (e) { addRow({ src: e.src, pdf: e.pdf, alt: e.alt, checked: true }); });
+    driveIds(sourceUrl).forEach(function (id) { addRow({ fid: id, checked: false }); });
+    function loadPreview(row) {
+      return api('admin.file.preview', { id: row.fid }).then(function (r) {
+        row.thumb.textContent = '';
+        if (r && r.ok && r.b64) {
+          row.thumb.appendChild(h('img', { src: 'data:' + r.mime + ';base64,' + r.b64, alt: '' }));
+          if (r.kind === 'pdf') row.thumb.appendChild(h('span', { class: 'muted', text: 'PDFの1ページ目' }));
+        } else if (r && r.ok && r.kind === 'pdf') row.thumb.appendChild(h('span', { class: 'muted', text: 'PDF(表紙の画像はありません。資料として載ります)' }));
+        else row.thumb.appendChild(h('span', { class: 'muted', text: '見本を表示できません' }));
+        if (r && r.ok && r.kind === 'pdf') {
+          row.pdfCb = h('input', { type: 'checkbox' });
+          row.right.appendChild(h('label', {}, [row.pdfCb, 'PDFそのものも「資料を開く」で載せる']));
+        }
+      }).catch(function () { row.thumb.textContent = '見本を表示できません'; });
+    }
+    wrap.addEventListener('toggle', function () {
+      if (!wrap.open || loaded) return; loaded = true;
+      rows.filter(function (r) { return r.fid; }).reduce(function (p, r) { return p.then(function () { return loadPreview(r); }); }, Promise.resolve());
+    });
+    var fin = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,application/pdf', 'aria-label': '写真・PDFを足す' });
+    var add = h('button', { class: 'btn-sub', type: 'button', text: 'この端末から写真・PDFを足す', onclick: function () {
+      var f = fin.files && fin.files[0];
+      if (!f) { status.className = 'status ng'; status.textContent = '足すファイルを選んでください。'; return; }
+      if (rows.length >= IMG_MAX) { status.className = 'status ng'; status.textContent = ERR.imgmax; return; }
+      add.disabled = true; status.className = 'status'; status.textContent = '保存しています…';
+      prepFile0(f).then(function (pf) { return api('admin.file.upload', { file: pf }); }).then(function (r) {
+        add.disabled = false;
+        if (r && r.ok) { var row = addRow({ fid: r.fid, checked: true }); loadPreview(row); fin.value = ''; status.className = 'status ok'; status.textContent = '足しました。'; }
+        else { status.className = 'status ng'; status.textContent = errText(r); }
+      }).catch(function () { add.disabled = false; status.className = 'status ng'; status.textContent = ERR.files; });
+    } });
+    var lay = sel(['top', 'side', 'bottom'], layout || 'top', function (o) { return LAYOUTS[o]; });
+    var ok = h('input', { type: 'checkbox' });
+    [h('p', { class: 'hint', text: '取り込んだ写真・PDFが下に出ます。載せたいものに「載せる」を入れてください(6件まで)。子どもの顔や名前が写っているものは、載せる前によく確認してください。' }),
+      grid, h('div', { class: 'field' }, [fin]), h('div', { class: 'btn-row' }, [add]), status,
+      field('並べ方', lay), h('label', {}, [ok, '載せる写真に、写っている方・個人情報の問題がないことを確認しました(新しく載せるときは必須)'])].forEach(function (x) { wrap.appendChild(x); });
+    return { box: wrap, get: function () {
+      var images = [];
+      rows.forEach(function (r) {
+        if (!r.cb.checked) return;
+        if (r.fid) images.push({ fid: r.fid, alt: r.alt.value, pdf: !!(r.pdfCb && r.pdfCb.checked) });
+        else images.push({ src: r.src, pdf: r.pdf, alt: r.alt.value });
+      });
+      return { images: images, imgOk: ok.checked, imgLayout: lay.value, hasNew: images.some(function (i) { return i.fid; }) };
+    } };
+  }
+  function imgCheck(pk, res) {   // 送る前の確認。問題があれば文字を出して false
+    if (pk.images.length > IMG_MAX) { res.className = 'status ng'; res.textContent = ERR.imgmax; return false; }
+    if (pk.hasNew && !pk.imgOk) { res.className = 'status ng'; res.textContent = ERR.imgok; return false; }
+    return true;
+  }
+
   // ---- 承認待ち
   function renderPending() {
     view.textContent = '';
@@ -101,6 +199,13 @@
     if (p.personal_flag) badges.appendChild(h('span', { class: 'badge warn', text: '個人情報が含まれる可能性' }));
     if (p.duplicate_of) badges.appendChild(h('span', { class: 'badge', text: '近い内容がすでにあります' }));
     badges.appendChild(h('span', { class: 'badge', text: '元: ' + (p.source_ref || p.source) }));
+    var pick = imgPicker(p.source_url, [], 'top');
+    var replCb = null, repl = null;
+    if (p.dup_title) {   // 近い内容が、すでにある(公開中・承認待ち)
+      replCb = h('input', { type: 'checkbox' }); replCb.checked = true;
+      repl = h('div', { class: 'dupbox' }, [h('p', { class: 'hint', text: '近い内容が' + p.dup_where + 'にあります: 「' + p.dup_title + '」' }),
+        h('label', {}, [replCb, '入れ替える(古いほうは「取り下げ済み」/載せない扱いにします。消さないので、あとで戻せます)'])]);
+    }
     var armedPublic = false;
     function decide(decision) {
       if (decision === 'approve' && !tc.get().length) {   // 載せる先が1つも選ばれていない
@@ -112,10 +217,13 @@
         res.textContent = '個人情報が含まれる可能性があります。内容を確認して、問題なければ、もう一度「承認して載せる」を押してください。';
         return;
       }
-      approve.disabled = reject.disabled = true; res.textContent = '送信しています…';
+      var pk = pick.get();
+      if (decision === 'approve' && !imgCheck(pk, res)) return;
+      approve.disabled = reject.disabled = true; res.textContent = '送信しています…(写真があると少し時間がかかります)';
       api('admin.pending.decide', {
-        id: p.id, decision: decision,
-        edits: { title: title.value, kind: kind.value, targets: decision === 'reject' ? [] : tc.get(), topic: topic.value, attendance: attend.value, date: date.value, endDate: endDate.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value }
+        id: p.id, decision: decision, replace: (decision === 'approve' && replCb && replCb.checked) ? p.duplicate_of : '',
+        images: decision === 'approve' ? pk.images : [], imgOk: pk.imgOk,
+        edits: { title: title.value, kind: kind.value, targets: decision === 'reject' ? [] : tc.get(), topic: topic.value, attendance: attend.value, date: date.value, endDate: endDate.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value, imgLayout: pk.imgLayout }
       }).then(function (r) {
         if (r && r.ok) {
           res.className = 'status ok';
@@ -127,9 +235,9 @@
     }
     var approve = h('button', { class: 'btn', type: 'button', text: '承認して載せる', onclick: function () { decide('approve'); } });
     var reject = h('button', { class: 'btn-sub', type: 'button', text: '載せない', onclick: function () { decide('reject'); } });
-    [badges, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます)', tc.box), field('話題(ボランティア向けのとき)', topic), field('参加区分(ボランティア向けのとき)', attend),
+    [badges, repl, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます)', tc.box), field('話題(ボランティア向けのとき)', topic), field('参加区分(ボランティア向けのとき)', attend),
       field('日付(開始日)', date), field('終了日(複数日のときだけ)', endDate), field('日時の文章', dateText), field('場所', place), field('要約', summary), field('リンク(https)', url),
-      h('div', { class: 'btn-row' }, [approve, reject]), res].forEach(function (x) { if (x) card.appendChild(x); });
+      pick.box, h('div', { class: 'btn-row' }, [approve, reject]), res].forEach(function (x) { if (x) card.appendChild(x); });
     return card;
   }
 
@@ -241,7 +349,8 @@
     var box = h('details', { class: 'item' });
     box.appendChild(h('summary', { text: '＋ お知らせを直接入れる(勉強会など)' }));
     var title = h('input', { type: 'text', maxlength: '80' });
-    var kind = sel(KINDS.slice(0, 3), '単発イベント');
+    var kind = sel(KINDS.slice(0, 4), '単発イベント');
+    var pick = imgPicker('', [], 'top');
     var tc = targetChecks('public');
     var date = h('input', { type: 'date' });
     var endDate = h('input', { type: 'date' });
@@ -253,9 +362,11 @@
     var go = h('button', { class: 'btn', type: 'button', text: 'これを載せる', onclick: function () {
       if (!title.value.trim()) { res.className = 'status ng'; res.textContent = '見出しを入れてください。'; return; }
       if (!tc.get().length) { res.className = 'status ng'; res.textContent = '載せる先を1つ以上選んでください。'; return; }
+      var pk = pick.get();
+      if (!imgCheck(pk, res)) return;
       go.disabled = true; res.className = 'status'; res.textContent = '載せています…';
-      api('admin.published.add', { edits: { title: title.value, kind: kind.value, targets: tc.get(), date: date.value, endDate: endDate.value,
-        dateText: dateText.value, place: place.value, summary: summary.value, url: url.value } }).then(function (r) {
+      api('admin.published.add', { images: pk.images, imgOk: pk.imgOk, edits: { title: title.value, kind: kind.value, targets: tc.get(), date: date.value, endDate: endDate.value,
+        dateText: dateText.value, place: place.value, summary: summary.value, url: url.value, imgLayout: pk.imgLayout } }).then(function (r) {
         go.disabled = false;
         if (r && r.ok) { res.className = 'status ok'; res.textContent = '載せました。' + (r.site === 'updated' ? '(サイトの更新は1〜2分かかります)' : ''); setTimeout(reload, 1500); }
         else { res.className = 'status ng'; res.textContent = errText(r); }
@@ -263,7 +374,7 @@
     } });
     [h('p', { class: 'hint', text: KIND_HINT }), field('見出し', title), field('種類', kind), field('載せる先(複数選べます)', tc.box), field('日付(開始日)', date),
       field('終了日(複数日のときだけ)', endDate), field('日時の文章(例: 12月5日(金)19時〜)', dateText), field('場所', place), field('内容', summary),
-      field('リンク(https)', url), h('div', { class: 'btn-row' }, [go]), res].forEach(function (x) { box.appendChild(x); });
+      field('リンク(https)', url), pick.box, h('div', { class: 'btn-row' }, [go]), res].forEach(function (x) { box.appendChild(x); });
     return box;
   }
   function publishedCard(it) {
@@ -283,6 +394,8 @@
     var res = h('p', { class: 'status', role: 'status' });
     var badges = h('p', {}, [h('span', { class: 'badge' + (active ? '' : ' warn'), text: STATUS_LABEL[it.status] || it.status }),
       h('span', { class: 'badge', text: targetsText(it.target) || it.target })]);
+    var pick = imgPicker(it.source_url, it.images, it.img_layout);
+    var dupNote = it.dup_title ? h('p', { class: 'hint' }, [h('span', { class: 'badge warn', text: '重複かも' }), ' 近い内容のものがほかにもあります: 「' + it.dup_title + '」。同じ内容なら、どちらかを取り下げてください。']) : null;
     var inputs = [title, kind, topic, attend, date, endDate, dateText, place, summary, url].concat([].slice.call(tcq.box.querySelectorAll('input')));
     if (!active) inputs.forEach(function (x) { x.disabled = true; });
     function done(r, okText) {
@@ -294,9 +407,11 @@
       res.className = 'status ng'; res.textContent = errText(r); return false;
     }
     var save = h('button', { class: 'btn', type: 'button', text: '修正を保存', onclick: function () {
-      save.disabled = true; res.className = 'status'; res.textContent = '保存しています…';
-      api('admin.published.update', { id: it.id, edits: { title: title.value, kind: kind.value, targets: tcq.get(), topic: topic.value, attendance: attend.value,
-        date: date.value, endDate: endDate.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value } }).then(function (r) {
+      var pk = pick.get();
+      if (!imgCheck(pk, res)) return;
+      save.disabled = true; res.className = 'status'; res.textContent = '保存しています…(写真があると少し時間がかかります)';
+      api('admin.published.update', { id: it.id, images: pk.images, imgOk: pk.imgOk, edits: { title: title.value, kind: kind.value, targets: tcq.get(), topic: topic.value, attendance: attend.value,
+        date: date.value, endDate: endDate.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value, imgLayout: pk.imgLayout } }).then(function (r) {
         save.disabled = false; done(r, '保存しました。');
       }).catch(function () { save.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
     } });
@@ -313,9 +428,9 @@
         .catch(function () { restore.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
     } });
     var source = srcBox('', it.source_url, '元の資料を開く');
-    [badges, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます。あとから追加もできます)', tcq.box), field('話題(ボランティア向けのとき)', topic),
+    [badges, dupNote, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます。あとから追加もできます)', tcq.box), field('話題(ボランティア向けのとき)', topic),
       field('参加区分(ボランティア向けのとき)', attend), field('日付(開始日)', date), field('終了日(複数日のとき。この日を過ぎると一般向けから消えます)', endDate), field('日時の文章', dateText), field('場所', place), field('要約', summary),
-      field('リンク(https)', url), h('div', { class: 'btn-row' }, active ? [save, withdraw] : [restore]), res].forEach(function (x) { if (x) card.appendChild(x); });
+      field('リンク(https)', url), active ? pick.box : null, h('div', { class: 'btn-row' }, active ? [save, withdraw] : [restore]), res].forEach(function (x) { if (x) card.appendChild(x); });
     return card;
   }
 
