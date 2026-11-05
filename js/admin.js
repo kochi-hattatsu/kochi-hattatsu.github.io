@@ -719,6 +719,63 @@
     load();
   }
 
+  // ---- 設定: HP専用LINE(鍵を入れる・受け口のURL・登録の番号)。鍵は画面に出さない
+  function renderLineSettings() {
+    view.appendChild(h('h2', { text: 'HP専用LINE' }));
+    var st = h('p', { class: 'status', role: 'status', text: '状態を確かめています…' });
+    view.appendChild(st);
+    function loadLine() {
+      api('admin.line.status').then(function (r) {
+        if (!r || !r.ok) { st.className = 'status ng'; st.textContent = '状態を読み込めませんでした。'; return; }
+        var t = !r.hasToken ? '鍵: 未設定' : (r.tokenOk ? '鍵: OK' : '鍵: 入っていますが、LINEに断られました(コード ' + r.tokenCode + ')。入れ直してください');
+        st.className = 'status ' + (r.tokenOk && r.registered ? 'ok' : 'ng');
+        st.textContent = t + ' / 田中さんのLINEの登録: ' + (r.registered ? '済み' : 'まだ') + (r.basicId ? ' / LINEのID: ' + r.basicId : '') + (r.registered ? ' / 読み込み待ち: ' + r.waiting + '件' : '');
+      }).catch(function () { st.className = 'status ng'; st.textContent = ERR.failed; });
+    }
+    loadLine();
+
+    view.appendChild(h('h3', { text: '① LINEの鍵を入れる' }));
+    view.appendChild(h('p', { class: 'hint', text: 'LINE Developers の「Messaging API設定」の一番下にある「チャネルアクセストークン(長期)」の文字列を、コピーして貼り付けてください。保存したあとは、画面には出ません。' }));
+    var tk = h('input', { id: 'line-token', type: 'password', autocomplete: 'off', maxlength: '400' });
+    var tres = h('p', { class: 'status', role: 'status' });
+    view.appendChild(field('チャネルアクセストークン(長期)', tk));
+    view.appendChild(h('div', { class: 'btn-row' }, [h('button', { class: 'btn', type: 'button', text: '鍵を保存する', onclick: function () {
+      tres.className = 'status'; tres.textContent = 'LINEに確かめています…';
+      api('admin.line.setToken', { token: tk.value }).then(function (r) {
+        if (r && r.ok) { tres.className = 'status ok'; tres.textContent = '保存しました。LINEで使える鍵でした。'; tk.value = ''; loadLine(); }
+        else if (r && r.reason === 'format') { tres.className = 'status ng'; tres.textContent = '鍵の形ではありません。前後の空白や、別の文字が入っていないか確かめてください。'; }
+        else if (r && r.reason === 'rejected') { tres.className = 'status ng'; tres.textContent = 'LINEに断られました(コード ' + r.code + ')。「チャネルアクセストークン(長期)」をコピーし直してください。保存はしていません。'; }
+        else { tres.className = 'status ng'; tres.textContent = errText(r); }
+      }).catch(function () { tres.className = 'status ng'; tres.textContent = ERR.failed; });
+    } })]));
+    view.appendChild(tres);
+
+    view.appendChild(h('h3', { text: '② LINEに入れる受け口のURL' }));
+    view.appendChild(h('p', { class: 'hint', text: 'LINE Developers の「Messaging API設定」の「Webhook URL」に貼り付けて、「Webhookの利用」をオンにしてください。' }));
+    var gas = (typeof GAS_URL === 'string') ? GAS_URL : '';
+    var ures = h('p', { class: 'status', role: 'status' });
+    var urlBox = h('input', { id: 'line-webhook-url', type: 'text', readonly: 'readonly', value: gas });
+    view.appendChild(field('Webhook URL', urlBox));
+    view.appendChild(h('div', { class: 'btn-row' }, [h('button', { class: 'btn-sub', type: 'button', text: 'URLをコピーする', onclick: function () {
+      function fallback() { urlBox.focus(); urlBox.select(); ures.className = 'status'; ures.textContent = '選んだ状態にしました。長押し(右クリック)でコピーしてください。'; }
+      try {
+        navigator.clipboard.writeText(gas).then(function () { ures.className = 'status ok'; ures.textContent = 'コピーしました。'; }, fallback);
+      } catch (e) { fallback(); }
+    } })]));
+    view.appendChild(ures);
+
+    view.appendChild(h('h3', { text: '③ 田中さんのLINEを登録する' }));
+    view.appendChild(h('p', { class: 'hint', text: 'HP専用LINEを友だちに追加してから、下のボタンで番号を出し、HP専用LINEに「登録 番号」と送ってください(10分だけ使えます)。登録したLINEからの転送だけを受け付けます。' }));
+    var cres = h('p', { class: 'status', role: 'status' });
+    view.appendChild(h('div', { class: 'btn-row' }, [h('button', { class: 'btn-sub', type: 'button', text: '登録の番号を出す', onclick: function () {
+      api('admin.line.regCode').then(function (r) {
+        if (r && r.ok) { cres.className = 'status ok'; cres.textContent = 'HP専用LINEに「登録 ' + r.code + '」と送ってください(' + r.minutes + '分以内)。送ったら、このページを開き直すと「登録: 済み」になります。'; }
+        else { cres.className = 'status ng'; cres.textContent = errText(r); }
+      }).catch(function () { cres.className = 'status ng'; cres.textContent = ERR.failed; });
+    } })]));
+    view.appendChild(cres);
+  }
+
   // ---- 設定
   function renderSettings() {
     view.textContent = '';
@@ -732,6 +789,7 @@
       row('サイト更新用のトークン', r.hasGithub);
       row('メーカー向けのパスワード', r.hasMakerPw);
     }).catch(function () { say(ERR.failed); });
+    renderLineSettings();
     view.appendChild(h('h2', { text: '写真の保存の診断' }));
     view.appendChild(h('p', { class: 'hint', text: '写真を載せられないときに押してください。ドライブ(取り込み元の保存)と、サイト(GitHub)への保存を、それぞれ試して、結果を表示します。' }));
     var dres = h('p', { class: 'status', role: 'status' });
