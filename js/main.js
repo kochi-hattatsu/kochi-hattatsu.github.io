@@ -19,6 +19,15 @@
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ''));
     return m ? m[1] + '年' + Number(m[2]) + '月' + Number(m[3]) + '日' : '';
   }
+  // 終了日(なければ日付)を過ぎたものは、表示しない。日付のないものは出し続ける。日本時間の「今日」で比べる。
+  function todayJst() {
+    var d = new Date(Date.now() + 9 * 3600 * 1000);
+    return d.toISOString().slice(0, 10);
+  }
+  function isPast(it) {
+    var last = /^\d{4}-\d{2}-\d{2}$/.test(String(it.endDate || '')) ? it.endDate : (/^\d{4}-\d{2}-\d{2}$/.test(String(it.date || '')) ? it.date : '');
+    return !!last && last < todayJst();
+  }
   function safeUrl(u) { return /^https:\/\//.test(String(u || '')) ? String(u) : ''; }
   function el(tag, cls, text) {
     var e = document.createElement(tag);
@@ -36,6 +45,7 @@
       return r.json();
     }).then(function (items) {
       box.textContent = '';
+      if (Array.isArray(items)) items = items.filter(function (it) { return !isPast(it); });
       if (!Array.isArray(items) || !items.length) { box.appendChild(el('p', 'muted', empty)); return; }
       items.forEach(function (it) {
         var d = el('article', 'item');

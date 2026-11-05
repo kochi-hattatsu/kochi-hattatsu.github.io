@@ -2,7 +2,8 @@
 (function () {
   'use strict';
   var TARGET_LABEL = { public: '一般向け(誰でも見られる)', maker: 'メーカー向け', volunteer: 'ボランティア向け', skip: '載せない' };
-  var KINDS = ['お知らせ', 'イベント', 'タスク', 'その他'];
+  var KINDS = ['お知らせ', 'イベント', '単発イベント', 'タスク', 'その他'];
+  var KIND_HINT = '種類: 高知ふくし機器展=「イベント」(トップ・イベント情報に出る)/勉強会などの単発=「単発イベント」(トップ・みんなのお知らせ掲示板に出る)。日付(終了日)を過ぎると、一般向けのページから自動で消えます。';
   var TOPICS = ['配置', '当日の流れ', '相談', '議事録置き場', 'セミナー', '定例会予定', '事務局への回答'];
   var ATTENDS = ['全員参加', '希望者のみ', 'リーダーのみ'];
   var STATUS_LABEL = { active: '公開中', withdrawn: '取り下げ済み' };
@@ -88,6 +89,7 @@
     var topic = sel([''].concat(TOPICS), p.topic, function (o) { return o || '(話題なし)'; });
     var attend = sel([''].concat(ATTENDS), p.attendance, function (o) { return o || '(指定なし)'; });
     var date = h('input', { type: 'date', value: /^\d{4}-\d{2}-\d{2}$/.test(p.date) ? p.date : '' });
+    var endDate = h('input', { type: 'date', value: '' });
     var dateText = h('input', { type: 'text', maxlength: '60', value: p.date_text || '' });
     var place = h('input', { type: 'text', maxlength: '80', value: p.place || '' });
     var summary = h('textarea', { rows: '4', maxlength: '400' }); summary.value = p.summary || '';
@@ -113,7 +115,7 @@
       approve.disabled = reject.disabled = true; res.textContent = '送信しています…';
       api('admin.pending.decide', {
         id: p.id, decision: decision,
-        edits: { title: title.value, kind: kind.value, targets: decision === 'reject' ? [] : tc.get(), topic: topic.value, attendance: attend.value, date: date.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value }
+        edits: { title: title.value, kind: kind.value, targets: decision === 'reject' ? [] : tc.get(), topic: topic.value, attendance: attend.value, date: date.value, endDate: endDate.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value }
       }).then(function (r) {
         if (r && r.ok) {
           res.className = 'status ok';
@@ -126,7 +128,7 @@
     var approve = h('button', { class: 'btn', type: 'button', text: '承認して載せる', onclick: function () { decide('approve'); } });
     var reject = h('button', { class: 'btn-sub', type: 'button', text: '載せない', onclick: function () { decide('reject'); } });
     [badges, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます)', tc.box), field('話題(ボランティア向けのとき)', topic), field('参加区分(ボランティア向けのとき)', attend),
-      field('日付', date), field('日時の文章', dateText), field('場所', place), field('要約', summary), field('リンク(https)', url),
+      field('日付(開始日)', date), field('終了日(複数日のときだけ)', endDate), field('日時の文章', dateText), field('場所', place), field('要約', summary), field('リンク(https)', url),
       h('div', { class: 'btn-row' }, [approve, reject]), res].forEach(function (x) { if (x) card.appendChild(x); });
     return card;
   }
@@ -224,6 +226,8 @@
     view.textContent = '';
     view.appendChild(h('h2', { text: '公開中の内容' }));
     view.appendChild(h('p', { class: 'hint', text: '載せたあとの修正と、取り下げができます。取り下げは、消さずに「取り下げ済み」にするので、あとで戻せます。' }));
+    view.appendChild(addBox(renderPublished));
+    view.appendChild(h('h3', { text: 'いま載っているもの' }));
     var list = h('div', { class: 'list' });
     view.appendChild(list);
     api('admin.published.list').then(function (r) {
@@ -231,6 +235,36 @@
       if (!r.items.length) { list.appendChild(h('p', { class: 'muted', text: 'まだ、載せた内容はありません。' })); return; }
       r.items.forEach(function (it) { list.appendChild(publishedCard(it)); });
     }).catch(function () { say(ERR.failed); });
+  }
+  // 管理者が直接入れる(勉強会などの単発のお知らせ。承認待ちを通さず、そのまま載る)
+  function addBox(reload) {
+    var box = h('details', { class: 'item' });
+    box.appendChild(h('summary', { text: '＋ お知らせを直接入れる(勉強会など)' }));
+    var title = h('input', { type: 'text', maxlength: '80' });
+    var kind = sel(KINDS.slice(0, 3), '単発イベント');
+    var tc = targetChecks('public');
+    var date = h('input', { type: 'date' });
+    var endDate = h('input', { type: 'date' });
+    var dateText = h('input', { type: 'text', maxlength: '60' });
+    var place = h('input', { type: 'text', maxlength: '80' });
+    var summary = h('textarea', { rows: '4', maxlength: '400' });
+    var url = h('input', { type: 'url', maxlength: '300' });
+    var res = h('p', { class: 'status', role: 'status' });
+    var go = h('button', { class: 'btn', type: 'button', text: 'これを載せる', onclick: function () {
+      if (!title.value.trim()) { res.className = 'status ng'; res.textContent = '見出しを入れてください。'; return; }
+      if (!tc.get().length) { res.className = 'status ng'; res.textContent = '載せる先を1つ以上選んでください。'; return; }
+      go.disabled = true; res.className = 'status'; res.textContent = '載せています…';
+      api('admin.published.add', { edits: { title: title.value, kind: kind.value, targets: tc.get(), date: date.value, endDate: endDate.value,
+        dateText: dateText.value, place: place.value, summary: summary.value, url: url.value } }).then(function (r) {
+        go.disabled = false;
+        if (r && r.ok) { res.className = 'status ok'; res.textContent = '載せました。' + (r.site === 'updated' ? '(サイトの更新は1〜2分かかります)' : ''); setTimeout(reload, 1500); }
+        else { res.className = 'status ng'; res.textContent = errText(r); }
+      }).catch(function () { go.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
+    } });
+    [h('p', { class: 'hint', text: KIND_HINT }), field('見出し', title), field('種類', kind), field('載せる先(複数選べます)', tc.box), field('日付(開始日)', date),
+      field('終了日(複数日のときだけ)', endDate), field('日時の文章(例: 12月5日(金)19時〜)', dateText), field('場所', place), field('内容', summary),
+      field('リンク(https)', url), h('div', { class: 'btn-row' }, [go]), res].forEach(function (x) { box.appendChild(x); });
+    return box;
   }
   function publishedCard(it) {
     var card = h('section', { class: 'item' });
@@ -241,6 +275,7 @@
     var topic = sel([''].concat(TOPICS), it.topic, function (o) { return o || '(話題なし)'; });
     var attend = sel([''].concat(ATTENDS), it.attendance, function (o) { return o || '(指定なし)'; });
     var date = h('input', { type: 'date', value: /^\d{4}-\d{2}-\d{2}$/.test(it.date) ? it.date : '' });
+    var endDate = h('input', { type: 'date', value: /^\d{4}-\d{2}-\d{2}$/.test(it.end_date) ? it.end_date : '' });
     var dateText = h('input', { type: 'text', maxlength: '60', value: it.date_text || '' });
     var place = h('input', { type: 'text', maxlength: '80', value: it.place || '' });
     var summary = h('textarea', { rows: '4', maxlength: '400' }); summary.value = it.summary || '';
@@ -248,7 +283,7 @@
     var res = h('p', { class: 'status', role: 'status' });
     var badges = h('p', {}, [h('span', { class: 'badge' + (active ? '' : ' warn'), text: STATUS_LABEL[it.status] || it.status }),
       h('span', { class: 'badge', text: targetsText(it.target) || it.target })]);
-    var inputs = [title, kind, topic, attend, date, dateText, place, summary, url].concat([].slice.call(tcq.box.querySelectorAll('input')));
+    var inputs = [title, kind, topic, attend, date, endDate, dateText, place, summary, url].concat([].slice.call(tcq.box.querySelectorAll('input')));
     if (!active) inputs.forEach(function (x) { x.disabled = true; });
     function done(r, okText) {
       if (r && r.ok) {
@@ -261,7 +296,7 @@
     var save = h('button', { class: 'btn', type: 'button', text: '修正を保存', onclick: function () {
       save.disabled = true; res.className = 'status'; res.textContent = '保存しています…';
       api('admin.published.update', { id: it.id, edits: { title: title.value, kind: kind.value, targets: tcq.get(), topic: topic.value, attendance: attend.value,
-        date: date.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value } }).then(function (r) {
+        date: date.value, endDate: endDate.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value } }).then(function (r) {
         save.disabled = false; done(r, '保存しました。');
       }).catch(function () { save.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
     } });
@@ -279,7 +314,7 @@
     } });
     var source = srcBox('', it.source_url, '元の資料を開く');
     [badges, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます。あとから追加もできます)', tcq.box), field('話題(ボランティア向けのとき)', topic),
-      field('参加区分(ボランティア向けのとき)', attend), field('日付', date), field('日時の文章', dateText), field('場所', place), field('要約', summary),
+      field('参加区分(ボランティア向けのとき)', attend), field('日付(開始日)', date), field('終了日(複数日のとき。この日を過ぎると一般向けから消えます)', endDate), field('日時の文章', dateText), field('場所', place), field('要約', summary),
       field('リンク(https)', url), h('div', { class: 'btn-row' }, active ? [save, withdraw] : [restore]), res].forEach(function (x) { if (x) card.appendChild(x); });
     return card;
   }
