@@ -45,7 +45,7 @@
       return r.json();
     }).then(function (items) {
       box.textContent = '';
-      if (Array.isArray(items)) items = items.filter(function (it) { return !isPast(it); });
+      if (Array.isArray(items) && !box.getAttribute('data-keep')) items = items.filter(function (it) { return !isPast(it); });
       if (!Array.isArray(items) || !items.length) { box.appendChild(el('p', 'muted', empty)); return; }
       items.forEach(function (it) {
         var d = el('article', 'item');
