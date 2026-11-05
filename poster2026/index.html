@@ -131,6 +131,9 @@ ul.tight li{margin-bottom:4px}
 .env .ico{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center}
 .env .ico img{width:48px;height:48px}
 .mapimg{display:block;max-width:600px;margin:8px auto 0}
+.ill{display:block;width:100%;max-width:560px;height:auto;margin:12px auto 4px;border-radius:14px;border:1px solid var(--line);background:#fff}
+.ill-s{max-width:380px}
+.illcap{text-align:center;font-size:.88rem;margin:0 0 12px}
 .mapimg img{display:block;width:100%;height:auto;border-radius:14px;border:1.5px solid var(--line)}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0}
 .tabs button{font:inherit;font-size:.92rem;font-weight:700;cursor:pointer;border:1.5px solid var(--line);background:var(--cream);color:var(--ink);border-radius:10px 10px 0 0;padding:8px 12px;min-height:44px}
@@ -165,6 +168,11 @@ nav.toc li{counter-increment:t}
 nav.toc a{display:flex;gap:8px;align-items:center;padding:8px 0;min-height:44px}
 nav.toc a::before{content:counter(t);flex:0 0 26px;height:26px;border-radius:50%;background:var(--green-l);color:var(--green);font-weight:700;display:grid;place-items:center;font-size:.85rem}
 nav.toc li{margin:0}
+nav.toc .poster-map{margin-top:8px;border-top:1px solid var(--line);padding-top:6px}
+nav.toc .poster-map summary{cursor:pointer;font-weight:700;padding:10px 0}
+nav.toc .poster-map li{counter-increment:none;padding:4px 0}
+nav.toc .poster-map a{display:inline;min-height:0;padding:0}
+nav.toc .poster-map a::before{content:none}
 .top a,footer a{display:inline-block;padding:10px 0}
 .back{text-align:right;margin:8px 0 0;font-size:.95rem}
 .sum{margin:-6px 0 18px}
@@ -212,7 +220,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </div>
 
 <p class="key">必要なのはプログラミングではなく、<br>その子を知っていること。</p>
-<p class="muted sum">費用の目安: 作るとき<b class="hi">月3,000円</b>、動かすとき<b class="hi">月約300円</b>(<a href="#cost">くわしく</a>)</p>
+<p class="muted sum">発表者の費用: 作る月<b class="hi">約3,300円</b> → その後<b class="hi">月約300円</b>(<a href="#cost">くわしく</a>)</p>
 
 <nav class="toc" id="toc" aria-label="このページの中身">
   <p>このページの中身</p>
@@ -224,12 +232,23 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
     <li><a href="#need">必要なもの(発表者の環境)</a></li>
     <li><a href="#ai">作るAIの選び方</a></li>
     <li><a href="#voice">声の比較</a></li>
-    <li><a href="#nopi">ラズパイはなくても大丈夫</a></li>
+    <li><a href="#nopi">アプリの家(置き場)の選び方</a></li>
     <li><a href="#chara">キャラの用意と性格づけ</a></li>
     <li><a href="#trouble">つまずきやすい所</a></li>
     <li><a href="#sample">見本: 発表者のアプリに近いもの(参考)</a></li>
     <li><a href="#after">あとがき</a></li>
   </ol>
+  <details class="poster-map"><summary>ポスターの番号から探す</summary>
+  <ul class="tight">
+    <li>①できたもの → <a href="#video">1. 紹介動画</a></li>
+    <li>②壁がなくなった → <a href="#ai">6. 作るAIの選び方</a></li>
+    <li>③最初の相談 → <a href="#tool">2. 指示文づくりツール</a>・<a href="#flow">3. 頼み方の流れ</a></li>
+    <li>④全体マップ → <a href="#need">5. 必要なもの</a>・<a href="#nopi">8. アプリの家の選び方</a></li>
+    <li>⑤実際のやり取り → <a href="#flow">3. 頼み方の流れ</a></li>
+    <li>⑥実際の費用 → <a href="#cost">4. 費用</a></li>
+    <li>⑦今から作る方へ → <a href="#tool">2. ツール</a>・<a href="#voice">7. 声の比較</a>・<a href="#sample">11. 見本</a></li>
+  </ul>
+  </details>
 </nav>
 
 <section id="video">
@@ -253,13 +272,13 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 
 <section id="flow">
   <h2><span class="no">3</span>頼み方の流れ</h2>
-  <p>発表者の実際のやり取りは、とても長いものでした。まず、今から始める方がつまずかずに進める流れにまとめ直しています。その下に、実際のやり取りの再現を載せています。</p>
+  <p>ポスター⑤の「話す → 設計を頼む → 質問に答える → 作ってもらう → 使って直してもらう」を、くわしく分けた流れです。発表者の実際のやり取りは、とても長いものでした。まず、今から始める方がつまずかずに進める流れにまとめ直しています。その下に、やり取りの例を載せています。</p>
   <img class="pic" src="img/consult.png" alt="スマホでAIに相談しているイラスト" width="420" height="426">
   <ol class="flow">
     <li><b>ツールで最初の文章を作る</b>
-      その子のこと、困りごと、どうなってほしいかを書きます。分からない所は空でかまいません。</li>
+      ポスター③のとおり、【目的】どうなってほしいか と【きっかけ】何に困っているか の2つがあれば大丈夫です。その子のことも書けますが、分からない所は空でかまいません。</li>
     <li><b>AIに貼り付けて送る</b>
-      パソコンで、作業をしてくれるAI(発表者は Claude Code)を開き、文章を貼り付けます。</li>
+      パソコンで、作るAI(ポスターの「大工さん」役。発表者は Claude Code。<a href="#ai">6</a>でくわしく)を開き、文章を貼り付けます。</li>
     <li><b>AIの質問に答える</b>
       <div class="say ai"><span class="who">AI</span>「困ったときに大人へ知らせる方法は、どれがよいですか? ①ボタン ②キャラに話すと知らせる ③両方」</div>
       <div class="say me"><span class="who">あなた</span>「③で。ボタンを押せたら、キャラにほめてほしいです」</div>
@@ -275,15 +294,15 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
       <img class="stepimg" src="img/sleep.png" alt="寝ている間にAIが作業を進めているイラスト" width="420" height="280"></li>
   </ol>
   <div class="clear"></div>
-  <h3>実際のやり取り(再現)</h3>
-  <p class="muted">完成したアプリから逆算して、実際にあったやり取りを短く再現したものです。言葉は読みやすく整えています。タブを押すと切りかわります。</p>
+  <h3>やり取りの例</h3>
+  <p class="muted">やり取りの雰囲気を伝えるための例です(登場する子どもは架空です)。言葉は読みやすく整えています。タブを押すと切りかわります。</p>
   <div class="tabs" role="tablist" aria-label="やり取りの段階">
-    <button type="button" role="tab" id="t1-tab" aria-controls="t1" aria-selected="true" tabindex="0">①最初の相談</button>
-    <button type="button" role="tab" id="t2-tab" aria-controls="t2" aria-selected="false" tabindex="-1">②要約の確認</button>
-    <button type="button" role="tab" id="t3-tab" aria-controls="t3" aria-selected="false" tabindex="-1">③声選び</button>
-    <button type="button" role="tab" id="t4-tab" aria-controls="t4" aria-selected="false" tabindex="-1">④作って直す</button>
-    <button type="button" role="tab" id="t5-tab" aria-controls="t5" aria-selected="false" tabindex="-1">⑤機能を足す</button>
-    <button type="button" role="tab" id="t6-tab" aria-controls="t6" aria-selected="false" tabindex="-1">⑥空き時間に</button>
+    <button type="button" role="tab" id="t1-tab" aria-controls="t1" aria-selected="true" tabindex="0">その1 最初の相談</button>
+    <button type="button" role="tab" id="t2-tab" aria-controls="t2" aria-selected="false" tabindex="-1">その2 要約の確認</button>
+    <button type="button" role="tab" id="t3-tab" aria-controls="t3" aria-selected="false" tabindex="-1">その3 声選び</button>
+    <button type="button" role="tab" id="t4-tab" aria-controls="t4" aria-selected="false" tabindex="-1">その4 作って直す</button>
+    <button type="button" role="tab" id="t5-tab" aria-controls="t5" aria-selected="false" tabindex="-1">その5 機能を足す</button>
+    <button type="button" role="tab" id="t6-tab" aria-controls="t6" aria-selected="false" tabindex="-1">その6 空き時間に</button>
   </div>
   <div class="tabpanel" role="tabpanel" id="t1" aria-labelledby="t1-tab">
     <h3>最初の相談(1日目)</h3>
@@ -344,14 +363,17 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 
 <section id="cost">
   <h2><span class="no">4</span>費用</h2>
+  <img class="ill" src="img/ill_cost.jpg" alt="雲の大工さんが地球の上に家を建て、完成した家に親子が住んでいる絵。家の横には電気メーターと電球。" width="900" height="672" loading="lazy"><p class="muted illcap">大工さん(作るAI)は、家ができたら帰ります。住んでからは電気代(アプリの中のAI)だけ。</p>
   <div class="cmp">
-    <div class="big"><b>作るとき</b><span class="num">月 3,000円</span><small>AI(Claude Pro)</small></div>
-    <div class="big"><b>動かすとき</b><span class="num">月 約300円</span><small>使った分だけ</small></div>
+    <div class="big"><b>作るAI(大工さん代)</b><span class="num">月 3,000円</span><small>Claude Pro。作っている月だけ。作り終えたら解約できます</small></div>
+    <div class="big"><b>アプリの中のAI(電気代)</b><span class="num">使った分だけ</span><small>発表者は 月約300円</small></div>
   </div>
+  <p><b>発表者の合計: 作る月 約3,300円 → その後 月約300円</b>。作り終えたら、かかるのは電気代(アプリの中のAI)だけです。</p>
   <p>月約300円の前提: 1日30往復の会話、週2回しりとり15往復、週3回の絵日記。</p>
   <ul class="tight">
-    <li>1回あたりの目安: 会話 0.04〜0.35円、声 0.12円、写真の読み取り 0.1円、絵日記 7円</li>
-    <li>小さなパソコン(ラズパイ)を使う場合は、本体代が別にかかります。電気代はわずかです</li>
+    <li>1回あたりの目安: 会話 0.04〜0.35円(ポスターの「約0.25円」は、ふだんの会話の目安です)、声 0.12円、写真の読み取り 0.1円、絵日記 7円</li>
+    <li>無料枠のあるAIもあります(<a href="#free-api">5. の「無料の Gemini API で試すには」</a>)</li>
+    <li>アプリの家をネット上ではなく自宅に置く場合は、そのための機器代が別にかかります(<a href="#nopi">8</a>)</li>
   </ul>
   <p class="note"><b>まずは無料でためしたい方へ:</b> 簡単なものなら、無料版のチャットとコピペでも作れます。手順と見本は「<a href="#free">6. 作るAIの選び方</a>」の下にあります。</p>
   <p class="muted">金額は発表者の場合の目安です。使い方やAIの料金改定で変わります。</p>
@@ -360,17 +382,19 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 
 <section id="need">
   <h2><span class="no">5</span>必要なもの(発表者の環境)<img class="h2ic" src="img/i_cloud.png" alt="" width="44" height="44"></h2>
-  <p>ポスターでは「パソコン・AI・ラズパイ・スマホ」と短く書きました。ここでは、発表者の実際の環境をくわしく載せます。</p>
+  <p>ポスター④の全体マップを、発表者の実際の環境でくわしく載せます。</p>
+  <img class="ill ill-s" src="img/ill_cost.jpg" alt="雲の大工さんが地球の上に家を建て、完成した家に親子が住んでいる絵。" width="900" height="672" loading="lazy">
+  <p class="muted illcap">作るとき: パソコン+作るAI(大工さん) → できたら: アプリの家(クラウドなど)に置く → 毎月: スマホから使う+アプリの中のAI(電気代)</p>
   <h3>機器と、それぞれの役目</h3>
   <div class="env">
-    <div class="ico"><img src="img/i_laptop.png" alt="" width="48" height="48"><span><b>作る: パソコン(CPU Intel N100/メモリ 8GB)</b>この性能で、アプリ作りは問題なくできました。作る作業の重い部分は、ネットの先のAIが行うためです。</span></div>
-    <div class="ico"><img src="img/i_cloud.png" alt="" width="48" height="48"><span><b>作るAI: Claude Code(Claude Pro 月約3,000円)</b>パソコンの中で、ファイル作り・動作の確認・直しまで進めてくれます(下の6へ)。</span></div>
-    <div class="ico"><img src="img/i_pi.png" alt="" width="48" height="48"><span><b>動かす: ラズパイ(Raspberry Pi 3)</b>家の中で一日中アプリを動かしています。古い型でも動きます。なくても作れます(下の8へ)。</span></div>
+    <div class="ico"><img src="img/i_laptop.png" alt="" width="48" height="48"><span><b>作る: パソコン(高価なものは不要)</b>発表者は性能ひかえめのノート(CPU N100/メモリ 8GB)で十分でした。重い作業はネットの先のAIがするためです。</span></div>
+    <div class="ico"><img src="img/i_cloud.png" alt="" width="48" height="48"><span><b>作るAI(大工さん): Claude Code(Claude Pro 月約3,000円)</b>作る・確かめる・直すまでしてくれます(6へ)。</span></div>
+    <div class="ico"><img src="img/i_home.png" alt="" width="48" height="48"><span><b>アプリの家: クラウドなど(ネット上の置き場)</b>できたアプリを置いて、いつでもスマホから使えるようにする場所です(置き方は8へ)。</span></div>
     <div class="ico"><img src="img/i_phone.png" alt="" width="48" height="48"><span><b>使う: 子どものスマホ・親のスマホ</b>子どもはブラウザでアプリを開くだけ。親には LINE で知らせが届きます。</span></div>
   </div>
 
   <h3>発表者のアプリのつながり(全体図)</h3>
-  <a class="mapimg" href="img/map.svg"><img src="img/map.svg" alt="発表者のアプリのつながりの図。パソコンとClaude Codeで作ってラズパイに届ける。子どものスマホはラズパイのアプリとやり取りする。アプリは機能ごとに別のAIへ頼む。会話・しりとり・宿題のヒント・絵日記の文・毎朝のまとめはClaude Haiku 5.5(10月30日にGeminiから変更)、写真の読み取りはGemini 3.5 Flash-Lite、キャラの声はGemini 3.8 Flash TTS、絵日記の絵はOpenRouter経由のGPT-5 Image Mini、予定とやることはGoogleのカレンダーとToDo、親への知らせはLINE。AIはどれも使った分だけ料金がかかる。" width="600" height="1018"></a>
+  <a class="mapimg" href="img/map.svg"><img src="img/map.svg" alt="発表者のアプリのつながりの図。パソコンとClaude Code(大工さん役)で作って、アプリの家(クラウドなど)に置く。子どものスマホはアプリの家のアプリとやり取りする。アプリは機能ごとに別のAIへ頼む。会話・しりとり・宿題のヒント・絵日記の文・毎朝のまとめはClaude Haiku 5.5(10月30日にGeminiから変更)、写真の読み取りはGemini 3.5 Flash-Lite、キャラの声はGemini 3.8 Flash TTS、絵日記の絵はOpenRouter経由のGPT-5 Image Mini、予定とやることはGoogleのカレンダーとToDo、親への知らせはLINE。アプリの中のAI(電気代)は、どれも使った分だけ料金がかかる。" width="600" height="1018"></a>
   <p class="muted" style="text-align:center;margin:6px 0 12px">図を押すと大きく開きます</p>
   <p>会話・しりとり・宿題のヒントなどは、<b>2026年10月30日に、Gemini(3.5 Flash-Lite)から Claude(Haiku 5.5)に切りかえました。</b>このように、使いながらAIを入れかえることもできます。くわしい経緯は下にあります。</p>
   <details id="why-claude">
@@ -382,14 +406,15 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
   </details>
 
   <h3 class="h3ic"><img src="img/i_key.png" alt="" width="40" height="40">APIとAPIキーって何?</h3>
+  <img class="ill" src="img/ill_api.jpg" alt="地球の上の家から手が伸びて、お店の受付のロボットに会員カードと注文の紙を出している絵。" width="900" height="672" loading="lazy"><p class="muted illcap">アプリの家が、会員カード(APIキー)を見せて、AIの会社の窓口(API)に注文するイメージです。</p>
   <p>アプリが、ネットの先のAIに「この返事を考えて」と頼むときの<b>注文の窓口</b>が API です。その窓口を使うための<b>会員カード</b>が APIキー(キー=鍵とも呼ばれます)です。</p>
   <div class="fig" role="img" aria-label="子どもが話す、家のアプリが会員カード(APIキー)を付けてAIの会社に注文、AIの会社が返事を作って返す、キャラが返事をする、の4段階の図">
     <p class="cap">アプリの中で起きていること</p>
     <ol class="steps">
-      <li><span class="ic">📱</span><span><b>① 子どもが話す</b><small>「きょう、がっこうで こまったことがあった」</small></span></li>
-      <li><span class="ic">🏠</span><span><b>② アプリが、会員カードを付けて注文する</b><small>家のラズパイなどで動くアプリが <span class="key-on">💳 APIキー</span> を付けて、AIの会社の窓口(API)へ送る</small></span></li>
-      <li><span class="ic">🤖</span><span><b>③ AIの会社が返事を作る</b><small>注文を受けて、返事の文や声を作って返す</small></span></li>
-      <li><span class="ic">💬</span><span><b>④ キャラが返事をする</b><small>「そっか、なにが あったの? ゆっくりで いいよ」</small></span></li>
+      <li><span class="ic">📱</span><span><b>1. 子どもが話す</b><small>「きょう、がっこうで こまったことがあった」</small></span></li>
+      <li><span class="ic">🏠</span><span><b>2. アプリが、会員カードを付けて注文する</b><small>アプリの家で動くアプリが <span class="key-on">💳 APIキー</span> を付けて、AIの会社の窓口(API)へ送る</small></span></li>
+      <li><span class="ic">🤖</span><span><b>3. AIの会社が返事を作る</b><small>注文を受けて、返事の文や声を作って返す</small></span></li>
+      <li><span class="ic">💬</span><span><b>4. キャラが返事をする</b><small>「そっか、なにが あったの? ゆっくりで いいよ」</small></span></li>
     </ol>
   </div>
   <div class="analogy">
@@ -403,11 +428,12 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
     <li>各社のページで「月の上限額」を決めておくと、使いすぎを防げます</li>
   </ul>
 
-  <h3>無料の Gemini API で試すには</h3>
+  <h3 id="free-api">無料の Gemini API で試すには</h3>
   <p>Google の Gemini API には無料枠があります。ただし、今(2026年11月)無料で使えるのは、主に<b>会話用の軽いモデル</b>です。声や絵には使えないことが多く、<b>試作で会話を試す程度</b>と考えてください。</p>
+  <img class="ill" src="img/ill_free_postcard.jpg" alt="上は、はがきの中を虫めがねでのぞかれている絵。下は、鍵のついた封筒がそのままポストに入る絵。" width="760" height="760" loading="lazy"><p class="muted illcap">上: 無料は「はがき」。途中で読まれることがあります。下: 有料は「封をした手紙」。中身は見られません。</p>
   <div class="note"><b>無料枠の注意点</b>
   <ul class="tight" style="margin:4px 0 0">
-    <li>送った内容が、Google のサービス改善に使われます(人が読む場合もあります)。<b>子どもの名前や特性、会話の中身など、個人の情報は送らないでください。</b></li>
+    <li>無料は「はがき」です。送った内容が Google のサービス改善に使われ、人が読む場合もあります。<b>子どもの名前や特性、会話の中身など、個人の情報は送らないでください。</b></li>
     <li>1分・1日に使える回数に上限があり、超えると止まります。毎日使うアプリには足りません。</li>
     <li>無料で使えるモデルや上限は、予告なく変わります。</li>
     <li>発表者は、子どもが実際に使う段階からは、すべて有料(送った内容が改善に使われない)にしています。</li>
@@ -424,6 +450,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
     <div class="vcard so"><h3>Gemini(話す)/ Gemini CLI(作業まで)</h3><p class="muted" style="margin:0 0 4px">Google</p><p class="one">△ 今のところ、こうしたアプリ作り(プログラム作り)には、あまり向いていない印象です</p></div>
   </div>
   <h3>「話すAI」と「作業までするAI」の違い</h3>
+  <img class="ill" src="img/ill_ai.jpg" alt="左は、雲の大工さんから設計図だけをもらって困っている人。右は、雲の大工さんが家を建てていて、人は座って見ている絵。" width="900" height="672" loading="lazy"><p class="muted illcap">話すAIは図面をくれるだけ(建てるのは自分)。作業までするAIは、家まで建ててくれます。</p>
   <div class="vs">
     <div>
       <h4 class="h3ic"><img src="img/i_phone.png" alt="" width="28" height="28">話すAI</h4><p class="who">Claude / ChatGPT / Gemini(ふだんスマホで使っている、あのAI)</p>
@@ -434,7 +461,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
         <li><span class="bot">AI</span>: 直した文を出す(相談相手のように、やり取りをくり返す)</li>
         <li><span class="me">あなた</span>: コピーして、メールやLINEに貼って送る</li>
       </ol>
-      <p class="muted" style="margin:8px 0 0;font-size:.88rem">アプリ作りでも同じで、プログラムを文章で出してくれますが、貼り付け・保存・動かす・直すのは自分です。</p>
+      <p class="muted" style="margin:8px 0 0;font-size:.88rem">アプリでも、貼る・動かす・直すのは自分です。</p>
       <p class="end">手を動かすのは、あなた。</p>
     </div>
     <div>
@@ -517,16 +544,40 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 </section>
 
 <section id="nopi">
-  <h2><span class="no">8</span>ラズパイはなくても大丈夫<img class="h2ic" src="img/i_pi.png" alt="" width="44" height="44"></h2>
-  <p><b>ラズパイがあれば便利ですが、なくてもできることはたくさんあります。</b>ラズパイは「家でアプリを一日中つけておく」ための物で、アプリ作りに必須ではありません。</p>
-  <details><summary>なしで作る方法を読む</summary>
+  <h2><span class="no">8</span>アプリの家(置き場)の選び方<img class="h2ic" src="img/i_home.png" alt="" width="44" height="44"></h2>
+  <p>ポスター④の「ネットの置き場(アプリの家)」は、できたアプリを置いて、スマホからいつでも使えるようにしておく場所です。<b>はじめての方は、ネット上の置き場(クラウド)を借りる方法がおすすめです。</b>機器を買う必要がなく、無料や安い所から始められます。</p>
+
+  <h3>① まずはクラウド(ネット上の置き場)を借りる</h3>
   <ul class="tight">
-    <li><b>無料のホームページ置き場を使う</b>: 予定表・やることリスト・タイマーなど、画面だけで動くアプリは、無料の置き場に置けばスマホで使えます。<b>合言葉(パスワード)を付けたり、「指定した Google アカウントの人だけ入れる」ようにしたりすれば、家族だけで使えます</b></li>
-    <li><b>ネットの先の小さなサーバーを使う</b>: AIとの会話など、APIキーを隠す必要がある部分も、無料枠のあるサービスで動かせることが多いです</li>
-    <li><b>いつものパソコンで動かす</b>: パソコンをつけている間だけ使えればよい場合</li>
+    <li><b>無料のネットの置き場を借りる</b>: 予定表・やることリスト・タイマーなど、画面だけで動くアプリは、無料の置き場に置けばスマホで使えます。<b>合言葉(パスワード)を付けたり、「指定した Google アカウントの人だけ入れる」ようにしたりすれば、家族だけで使えます</b></li>
+    <li><b>ネットの先の小さな置き場(サーバー)を借りる</b>: AIとの会話など、APIキーを隠す必要がある部分も、無料枠のあるサービスで動かせることが多いです</li>
   </ul>
-  <p class="muted">ラズパイがあると便利なのは、夜中や朝の自動の処理(毎朝のまとめを送るなど)や、記録を家の中だけに置きたい場合です。どれが合うかは、ツールで「分からない」を選べばAIが比べてくれます。</p>
-  </details>
+  <p class="muted">番外: パソコンをつけている間だけ使えればよい場合は、いつものパソコンをアプリの家にすることもできます。どれが合うかは、ツールで「分からない」を選べば AI が比べてくれます。</p>
+
+  <h3>② もう一歩: 自宅に置く(ラズパイ)</h3>
+  <img class="ill" src="img/ill_home.jpg" alt="左は、雲の大工さんが地球の上に建てた家と、土地代を受け取る管理人さん。右は、同じ形の家を自分の家の庭に建て、親が自分で鍵をかけている絵。" width="900" height="672" loading="lazy"><p class="muted illcap">大工さんが建てる家は同じ。違うのは「どこに建てるか」。左: ネット上の土地を借りる(クラウド)。右: 自分の家の庭に建てる(ラズパイ)。</p>
+  <p>クラウドは「ネット上の土地を借りて建てる」方法。土地代(無料〜月数百円ほど)がかかることがありますが、管理は貸し主がしてくれます。ラズパイ(Raspberry Pi・ラズベリーパイ)は「自分の家の庭に建てる」方法。最初に土台(ラズパイ本体)を買えば土地代はかかりませんが、戸締まりは自分でします。</p>
+  <ul class="tight">
+    <li><b>ラズパイとは</b>: 手のひらほどの小さなパソコン。家に置いて、アプリの家の「土台」にします。つけっぱなしでも、電気料金はわずかです</li>
+    <li><b>費用</b>: メモリ4GBの型に電源・ケース・カードを足して、<b>約2〜3万円</b>(2026年11月時点・値上がり中。買う前にお店で確かめてください)。古い型や中古なら、もっと安いこともあります</li>
+  </ul>
+  <div class="cmp">
+    <div><b>良い所</b><ul class="tight">
+      <li>子どもの記録を家の中に置ける(預け先から漏れる心配がない)</li>
+      <li>夜中や朝の自動の処理を自由に使える</li>
+      <li>置き場の月額料金がかからない</li>
+    </ul></div>
+    <div><b>気をつける所</b><ul class="tight">
+      <li>最初の設定に手間がかかる(作るAIが案内してくれる)</li>
+      <li>外から使うには、つなぐ道具の設定が要る(<a href="#trouble">10</a>の「くわしく読む」)</li>
+      <li>停電・故障・更新・戸締まりは自分で見る</li>
+      <li>AIに送る文は、どちらでもAIの会社へ届く</li>
+    </ul></div>
+  </div>
+  <p class="note"><b>こんな方に</b>: 記録を家の外に置きたくない方/毎朝の自動の知らせを使いたい方。クラウドで作って、あとから引っ越すこともできます(作るAIに頼めます)。</p>
+
+  <h3>③ 発表者の場合</h3>
+  <p>古い型のラズパイ(Pi 3)を家に置いて、アプリの家にしています。毎朝のまとめなどの自動の処理のためです。古い型でも、問題なく動いています。</p>
   <p class="back"><a href="#toc">▲ 中身の一覧へ</a></p>
 </section>
 
@@ -554,11 +605,12 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
 
 <section id="trouble">
   <h2><span class="no">10</span>つまずきやすい所</h2>
+  <img class="ill" src="img/ill_tunnel.jpg" alt="公園でスマホを持つ親から、家の庭の小さな家まで、光る秘密のトンネルがつながっている絵。知らない人は、鍵のかかった入口から入れない。" width="900" height="672" loading="lazy"><p class="muted illcap">アプリの家を自宅に置いたときは、外のスマホから家へ「家族だけが通れる秘密のトンネル」を作ります(Tailscale などの道具)。知らない人は入れません。</p>
   <details><summary>くわしく読む</summary>
   <ul class="tight">
     <li><b>APIの登録が英語</b>: ブラウザを操作できるAIに、画面を見ながら案内してもらえます</li>
     <li><b>声選び</b>: 一番時間がかかりました。上の比較表で候補をしぼると早く決まります。安くても、身分証の提出が必要な所があります</li>
-    <li><b>外から家のアプリにつなぐ</b>: 外から家につなぐ道具(Tailscale など)を使います。設定と、使う人の管理が必要です</li>
+    <li><b>外から家のアプリにつなぐ</b>(アプリの家を自宅に置いた場合だけ。<a href="#nopi">8</a>の②): 外から家につなぐ道具(Tailscale など。上の絵の「秘密のトンネル」)を使います。設定と、使う人の管理が必要です</li>
     <li><b>LINEなどへの通知</b>: 外部サービスの登録が必要です。無料で送れる数に上限があります</li>
     <li><b>ファイルの置き場所</b>: 最初に作業用のフォルダを作り、アプリごとに分けると迷いません</li>
   </ul>
@@ -571,7 +623,7 @@ footer{font-size:.92rem;color:var(--muted);margin-top:22px}
   <h2><span class="no">11</span>見本: 発表者のアプリに近いものを作りたい方へ(参考)</h2>
   <p class="note">キャラの性格づけのコツは「9. キャラの用意と性格づけ」にあります。<br>これは<b>参考</b>です。おすすめは、上の「2. 指示文づくりツール」で、その子に合わせた最初の文章を作る方法です。</p>
   <p>発表者のアプリにほぼ近いものを<b>試しに作ってみたい方</b>は、下の文章の<b>［ ］の中</b>を書き直して貼れば、似たものができると思います(【 】は見出しなので、そのままで大丈夫です)。</p>
-  <p class="spec"><b>かかる時間の目安(Claude Code)</b><br>最初の会話と「こまった」ボタンまで: 約3〜5時間<br>下の機能をひととおり: 約15〜20時間<br><span class="muted">発表者のアプリは、声選びなどの試行錯誤を含めて実働 約30時間でした(うち約6割は声選び。AIからの質問に答える時間も含みます)。機能をしぼったシンプルなアプリなら、1時間ほどで形になることもあります。</span></p>
+  <p class="spec"><b>かかる時間の目安(Claude Code)</b><br>最初の会話と「こまった」ボタンまで: 約3〜5時間<br>下の機能をひととおり: 約15〜20時間<br><span class="muted">発表者のアプリは、声選びなどの試行錯誤を含めて実働 約30時間でした(うち約6割は声選び。AIからの質問に答える時間も含みます)。機能をしぼったシンプルなアプリなら1時間ほど、<a href="#free">6. の無料版の見本</a>くらいのかんたんなものなら、ポスター③のとおり「指示5分・AIが作る20分」ほどで形になります。</span></p>
   <p class="note">APIキー(AIを使うための鍵)の発行や支払いの登録は、ご自身で行います。AIが手順を案内します。</p>
   <details>
     <summary>見本の文章を開く</summary>
