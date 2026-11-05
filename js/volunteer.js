@@ -22,6 +22,17 @@
       var a = h('a', { text: '詳しく見る', href: it.url, target: '_blank', rel: 'noopener noreferrer' });
       d.appendChild(h('p', {}, [a]));
     }
+    if (it.progress) {   // 依頼などの対応状況(管理者が書く)
+      d.appendChild(h('p', {}, [h('span', { class: 'badge' + (it.progress === 'done' ? '' : ' warn'), text: it.progress === 'done' ? '対応済み' : '対応中' })]));
+      if (it.progressNote) d.appendChild(h('p', { text: '対応メモ: ' + it.progressNote }));
+    }
+    return d;
+  }
+  function taskCard(t) {
+    var d = h('div', { class: 'item' }, [h('p', { text: t.title + (t.due ? '(期限: ' + t.due + ')' : '') })]);
+    if (t.status === 'doing') d.appendChild(h('p', {}, [h('span', { class: 'badge warn', text: '対応中' })]));
+    if (t.status === 'done') d.appendChild(h('p', {}, [h('span', { class: 'badge', text: '済' })]));
+    if (t.note) d.appendChild(h('p', { text: '対応メモ: ' + t.note }));
     return d;
   }
   document.addEventListener('member-ready', function () {
@@ -33,8 +44,13 @@
       if (r.tasks && r.tasks.length) {
         app.appendChild(h('h2', { text: 'やること' }));
         var tl = h('div', { class: 'list' });
-        r.tasks.forEach(function (t) { tl.appendChild(h('div', { class: 'item' }, [h('p', { text: t.title + (t.due ? '(期限: ' + t.due + ')' : '') })])); });
+        r.tasks.forEach(function (t) { tl.appendChild(taskCard(t)); });
         app.appendChild(tl);
+      }
+      if (r.doneTasks && r.doneTasks.length) {   // 済んだやること(記録として残す)
+        var dd = h('details', { class: 'srcbox' }, [h('summary', { text: '済んだやること(' + r.doneTasks.length + '件)' })]);
+        r.doneTasks.forEach(function (t) { dd.appendChild(taskCard(t)); });
+        app.appendChild(dd);
       }
       var groups = {};
       (r.items || []).forEach(function (it) { var k = it.target === 'volunteer' ? (it.topic || 'その他のお知らせ') : '一般向けのお知らせ'; (groups[k] = groups[k] || []).push(it); });
@@ -45,7 +61,7 @@
         any = true;
         app.appendChild(h('h2', { text: k }));
         var l = h('div', { class: 'list' });
-        groups[k].forEach(function (it) { l.appendChild(card(it)); });
+        groups[k].slice().sort(function (a, b) { return (a.progress === 'done' ? 1 : 0) - (b.progress === 'done' ? 1 : 0); }).forEach(function (it) { l.appendChild(card(it)); });   // 対応済みは、あとに並べる
         app.appendChild(l);
       });
       if (!any && !(r.tasks && r.tasks.length)) app.appendChild(h('p', { class: 'muted', text: 'いま、ご案内するものはありません。' }));
