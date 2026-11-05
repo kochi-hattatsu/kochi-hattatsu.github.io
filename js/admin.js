@@ -17,7 +17,7 @@
     email: 'メールアドレスの形を確認してください。', length: '12文字以上にしてください。',
     text: '内容が空か、長すぎます(12000文字まで)。',
     imgok: '新しく載せる写真があります。写っている方・個人情報を確認して、「確認しました」にチェックを入れてください。', imgmax: '写真・資料は、1つの内容に6つまでです。', imgid: '写真・資料を確認できませんでした。選び直してください。',
-    imgfail: '写真・資料の保存に失敗しました。時間をおいて、もう一度お試しください。', 'no-token': 'サイトの更新設定が未完了です(サイト更新用のトークン)。',
+    imgfail: '写真・資料の保存に失敗しました。時間をおいて、もう一度お試しください。(「設定」の「写真の保存を診断する」で原因を確認できます)', drive: 'ドライブへの保存に失敗しました。(「設定」の「写真の保存を診断する」で原因を確認できます)', 'no-token': 'サイトの更新設定が未完了です(サイト更新用のトークン)。',
     files: 'ファイルを読み込めませんでした。画像(写真・スクリーンショット)か、4MBまでのPDFを、8つまで選んでください。合計で約10MBまでです。', failed: 'うまくいきませんでした。時間をおいてお試しください。'
   };
 
@@ -165,11 +165,15 @@
       var cb = h('input', { type: 'checkbox' }); cb.checked = !!o.checked;
       var alt = h('input', { type: 'text', maxlength: '80', placeholder: '写真の説明(例: 体験コーナーの様子)', 'aria-label': '写真の説明' }); alt.value = o.alt || '';
       var thumb = h('div', { class: 'imgthumb' });
-      var row = { cb: cb, alt: alt, src: o.src || '', pdf: o.pdf || '', fid: o.fid || '', pdfCb: null, thumb: thumb };
-      if (o.src) thumb.appendChild(h('img', { src: o.src, alt: '' }));
+      var row = { cb: cb, alt: alt, src: o.src || '', pdf: o.pdf || '', fid: o.fid || '', data: o.data || null, pdfCb: null, thumb: thumb };
+      if (o.data) {   // この端末から足したもの(保存のときに、そのまま送る)
+        if (o.data.mime === 'application/pdf') thumb.appendChild(h('span', { class: 'muted', text: 'PDF(資料として載ります): ' + o.data.name }));
+        else thumb.appendChild(h('img', { src: 'data:' + o.data.mime + ';base64,' + o.data.b64, alt: '' }));
+      }
+      else if (o.src) thumb.appendChild(h('img', { src: o.src, alt: '' }));
       else if (o.pdf) thumb.appendChild(h('span', { class: 'muted', text: 'PDF資料' }));
       else thumb.appendChild(h('span', { class: 'muted', text: '読み込み中…' }));
-      var lab = h('label', {}, [cb, o.fid ? '載せる(新しい写真・資料)' : '載せる(いま載っているもの)']);
+      var lab = h('label', {}, [cb, (o.fid || o.data) ? '載せる(新しい写真・資料)' : '載せる(いま載っているもの)']);
       var right = h('div', {}, [lab, field('写真の説明(読み上げ・見えないときの代わり)', alt)]);
       if (o.fid) right.appendChild(h('p', {}, [h('a', { href: driveOpenUrl(o.fid), target: '_blank', rel: 'noopener noreferrer', text: '元のファイルを開く(Google ドライブ)' })]));
       if (o.pdf && o.src) right.appendChild(h('p', { class: 'hint', text: 'PDFの資料つき(写真を押すとPDFが開きます)' }));
@@ -210,9 +214,8 @@
         var f = left.shift();
         if (!f) { status.className = 'status ok'; status.textContent = '足しました。載せるものにチェックを入れて、承認・保存してください。'; return; }
         if (rows.length >= IMG_MAX) { status.className = 'status ng'; status.textContent = ERR.imgmax; return; }
-        prepFile0(f).then(function (pf) { return api('admin.file.upload', { file: pf }); }).then(function (r) {
-          if (r && r.ok) { var row = addRow({ fid: r.fid, checked: true }); loadPreview(row); wrap.open = true; next(); }
-          else { status.className = 'status ng'; status.textContent = errText(r); }
+        prepFile0(f).then(function (pf) {
+          addRow({ data: pf, checked: true }); wrap.open = true; next();
         }).catch(function () { status.className = 'status ng'; status.textContent = ERR.files; });
       })();
     }
@@ -225,10 +228,11 @@
       var images = [];
       rows.forEach(function (r) {
         if (!r.cb.checked) return;
-        if (r.fid) images.push({ fid: r.fid, alt: r.alt.value, pdf: !!(r.pdfCb && r.pdfCb.checked) });
+        if (r.data) images.push({ b64: r.data.b64, mime: r.data.mime, alt: r.alt.value });
+        else if (r.fid) images.push({ fid: r.fid, alt: r.alt.value, pdf: !!(r.pdfCb && r.pdfCb.checked) });
         else images.push({ src: r.src, pdf: r.pdf, alt: r.alt.value });
       });
-      return { images: images, imgOk: ok.checked, imgLayout: lay.value, hasNew: images.some(function (i) { return i.fid; }) };
+      return { images: images, imgOk: ok.checked, imgLayout: lay.value, hasNew: images.some(function (i) { return i.fid || i.b64; }) };
     } };
   }
   function imgCheck(pk, res) {   // 送る前の確認。問題があれば文字を出して false
@@ -384,7 +388,10 @@
         return api('admin.ingest.files', { files: files, preset: preset.get() });
       }).then(function (r) {
         fgo.disabled = false;
-        if (r && r.ok) { fres.className = 'status ok'; fres.textContent = r.added + '件を承認待ちに入れました。'; fin.value = ''; preset.clear(); }
+        if (r && r.ok) {
+          fres.className = 'status ok'; fres.textContent = r.added + '件を承認待ちに入れました。'; fin.value = ''; fnames.textContent = ''; preset.clear();
+          if (r.saveFail) { fres.className = 'status ng'; fres.textContent += ' ただし、元の写真・PDFの保存に失敗しました(コード ' + r.saveCode + (r.saveWhy ? '・' + r.saveWhy : '') + ')。このままでは、あとで写真として載せられません。「設定」の「写真の保存を診断する」を押してください。'; }
+        }
         else { fres.className = 'status ng'; fres.textContent = errText(r); }
       }).catch(function () { fgo.disabled = false; fres.className = 'status ng'; fres.textContent = ERR.files; });
     } });
@@ -725,6 +732,20 @@
       row('サイト更新用のトークン', r.hasGithub);
       row('メーカー向けのパスワード', r.hasMakerPw);
     }).catch(function () { say(ERR.failed); });
+    view.appendChild(h('h2', { text: '写真の保存の診断' }));
+    view.appendChild(h('p', { class: 'hint', text: '写真を載せられないときに押してください。ドライブ(取り込み元の保存)と、サイト(GitHub)への保存を、それぞれ試して、結果を表示します。' }));
+    var dres = h('p', { class: 'status', role: 'status' });
+    view.appendChild(h('div', { class: 'btn-row' }, [h('button', { class: 'btn-sub', type: 'button', text: '写真の保存を診断する', onclick: function () {
+      dres.className = 'status'; dres.textContent = '調べています…';
+      api('admin.diag').then(function (r) {
+        if (!r || !r.ok) { dres.className = 'status ng'; dres.textContent = errText(r); return; }
+        var d = r.drive || {}, g = r.github || {};
+        dres.className = 'status ' + ((d.ok && g.code === 200) ? 'ok' : 'ng');
+        dres.textContent = 'ドライブへの保存: ' + (d.ok ? 'OK' : '失敗(コード ' + d.code + (d.why ? '・' + d.why : '') + ')') +
+          ' / サイトの保存先(GitHub): ' + (!g.hasToken ? 'トークン未設定' : (g.code === 200 ? 'OK' : '失敗(コード ' + g.code + ')'));
+      }).catch(function () { dres.className = 'status ng'; dres.textContent = ERR.failed; });
+    } })]));
+    view.appendChild(dres);
     view.appendChild(h('h2', { text: 'メーカー向けのパスワード' }));
     var pw = h('input', { type: 'password', autocomplete: 'new-password', maxlength: '100' });
     var res = h('p', { class: 'status', role: 'status' });
