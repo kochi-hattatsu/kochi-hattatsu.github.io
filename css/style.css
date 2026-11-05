@@ -257,6 +257,9 @@ select,input[type=date],input[type=url]{width:100%;font:inherit;padding:10px 12p
 .link-cards:not(.cols3) a{position:relative;padding-right:52px}
 .link-cards:not(.cols3) a::after{content:"\203A";position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:34px;line-height:1;color:var(--green)}
 .link-cards:not(.cols3) a:hover{background:var(--green-l)}
+.info{display:grid;grid-template-columns:5em 1fr;gap:8px 16px;margin:0 0 16px}
+.info dt{font-weight:700;color:var(--green-d)}
+.info dd{margin:0}
 .link-cards.cols1{grid-template-columns:1fr !important}
 .list + .small{font-size:18px;color:var(--ink)}
 main>.status:not(:empty){text-align:center;font-size:20px;padding:28px 20px;border:1px solid var(--note-line);border-top:6px solid var(--orange);border-radius:20px}
