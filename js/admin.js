@@ -721,7 +721,7 @@
     api('admin.status').then(function (r) {
       if (!r || !r.ok) { say('読み込めませんでした。'); return; }
       function row(label, ok, extra) { box.appendChild(h('div', { class: 'item' }, [h('p', { text: label + ': ' + (ok ? 'OK' : '未設定') + (extra ? '(' + extra + ')' : '') })])); }
-      row('AIのキー', r.hasAiKey, '今月の使用量 ' + r.ai.used + ' / 上限 ' + r.ai.cap);
+      row('AIのキー(' + (r.aiProvider === 'anthropic' ? 'Claude Haiku' : 'Gemini') + ')', r.hasAiKey, '今月の使用量 ' + r.ai.used + ' / 上限 ' + r.ai.cap);
       row('サイト更新用のトークン', r.hasGithub);
       row('メーカー向けのパスワード', r.hasMakerPw);
     }).catch(function () { say(ERR.failed); });
