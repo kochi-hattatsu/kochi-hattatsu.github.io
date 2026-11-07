@@ -79,6 +79,7 @@
         if (it.dateText) when = String(it.dateText);
         if (when) { var t = el('time', null, when); main.appendChild(t); }
         main.appendChild(el('h3', null, String(it.title || '')));
+        if (it.done === true) { var dn = el('p'); dn.appendChild(el('span', 'badge', '済み')); main.appendChild(dn); }
         if (it.place) main.appendChild(el('p', null, '場所: ' + String(it.place)));
         if (it.body) main.appendChild(el('p', null, String(it.body)));
         var u = safeUrl(it.url);

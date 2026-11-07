@@ -6,7 +6,7 @@
   var KIND_HINT = '種類: 高知ふくし機器展そのもの=「イベント」(トップ・イベント情報に出る)/機器展の中のセミナー・展示・地図・資料=「機器展の内容」(機器展のページに出る。終わっても残る)/勉強会などの単発=「単発イベント」(トップ・みんなのお知らせ掲示板に出る)。日付(終了日)を過ぎると、一般向けのお知らせ・掲示板から自動で消えます。';
   var TOPICS = ['配置', '当日の流れ', '相談', '議事録置き場', 'セミナー', '定例会予定', '事務局への回答'];
   var ATTENDS = ['全員参加', '希望者のみ', 'リーダーのみ'];
-  var PROGRESS_LABEL = { '': '(なし)', doing: '対応中', done: '対応済み' };
+  var PROGRESS_LABEL = { '': '(なし)', open: 'これから', doing: '対応中', done: '対応済み' };
   var TASK_LABEL = { open: 'これから', doing: '対応中', done: '済' };
   var STATUS_LABEL = { active: '公開中', withdrawn: '取り下げ済み' };
   var ERR = {
@@ -479,7 +479,7 @@
     var place = h('input', { type: 'text', maxlength: '80', value: it.place || '' });
     var summary = h('textarea', { rows: '4', maxlength: '400' }); summary.value = it.summary || '';
     var url = h('input', { type: 'url', maxlength: '300', value: it.url || '' });
-    var progress = sel(['', 'doing', 'done'], it.progress || '', function (o) { return PROGRESS_LABEL[o]; });
+    var progress = sel(['', 'open', 'doing', 'done'], it.progress || '', function (o) { return PROGRESS_LABEL[o]; });
     var progNote = h('textarea', { rows: '2', maxlength: '300', placeholder: '例: 11/5 県社協へ○○を送りました' }); progNote.value = it.progress_note || '';
     var res = h('p', { class: 'status', role: 'status' });
     var badges = h('p', {}, [h('span', { class: 'badge' + (active ? '' : ' warn'), text: STATUS_LABEL[it.status] || it.status }),
@@ -775,6 +775,18 @@
       }).catch(function () { cres.className = 'status ng'; cres.textContent = ERR.failed; });
     } })]));
     view.appendChild(cres);
+
+    view.appendChild(h('h3', { text: '④ LINEの下のメニューを作る' }));
+    view.appendChild(h('p', { class: 'hint', text: 'HP専用LINEの下に「やること・締切/確認待ちの案/使い方」のボタンを出します。①〜③が済んでから、1回押してください(作り直すときも、もう一度押せば入れ替わります)。' }));
+    var mres = h('p', { class: 'status', role: 'status' });
+    view.appendChild(h('div', { class: 'btn-row' }, [h('button', { class: 'btn-sub', type: 'button', text: 'LINEのメニューを作る', onclick: function () {
+      mres.className = 'status'; mres.textContent = '作っています…';
+      api('admin.line.menu').then(function (r) {
+        if (r && r.ok) { mres.className = 'status ok'; mres.textContent = '作りました。LINEのトークを開き直すと、下にメニューが出ます。'; }
+        else { mres.className = 'status ng'; mres.textContent = 'うまくいきませんでした(' + ({ token: '鍵が未設定', site: 'サイトのURLが未設定', image: 'メニューの絵が見つかりません。サイトの公開を待ってから押してください', create: 'LINEに断られました', upload: '絵の登録に失敗', 'default': 'メニューの切り替えに失敗' }[r && r.reason] || '原因不明') + (r && r.code ? '・コード ' + r.code : '') + ')。'; }
+      }).catch(function () { mres.className = 'status ng'; mres.textContent = ERR.failed; });
+    } })]));
+    view.appendChild(mres);
   }
 
   // ---- 設定

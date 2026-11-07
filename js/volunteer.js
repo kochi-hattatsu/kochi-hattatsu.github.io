@@ -23,7 +23,7 @@
       d.appendChild(h('p', {}, [a]));
     }
     if (it.progress) {   // 依頼などの対応状況(管理者が書く)
-      d.appendChild(h('p', {}, [h('span', { class: 'badge' + (it.progress === 'done' ? '' : ' warn'), text: it.progress === 'done' ? '対応済み' : '対応中' })]));
+      d.appendChild(h('p', {}, [h('span', { class: 'badge' + (it.progress === 'done' ? '' : ' warn'), text: ({ open: 'これから', doing: '対応中', done: '対応済み' })[it.progress] || '対応中' })].concat(it.due && it.progress !== 'done' ? [' 締切: ' + it.due] : [])));
       if (it.progressNote) d.appendChild(h('p', { text: '対応メモ: ' + it.progressNote }));
     }
     return d;
