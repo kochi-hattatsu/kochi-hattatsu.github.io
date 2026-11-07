@@ -729,7 +729,8 @@
         if (!r || !r.ok) { st.className = 'status ng'; st.textContent = '状態を読み込めませんでした。'; return; }
         var t = !r.hasToken ? '鍵: 未設定' : (r.tokenOk ? '鍵: OK' : '鍵: 入っていますが、LINEに断られました(コード ' + r.tokenCode + ')。入れ直してください');
         st.className = 'status ' + (r.tokenOk && r.registered ? 'ok' : 'ng');
-        st.textContent = t + ' / 田中さんのLINEの登録: ' + (r.registered ? '済み' : 'まだ') + (r.basicId ? ' / LINEのID: ' + r.basicId : '') + (r.registered ? ' / 読み込み待ち: ' + r.waiting + '件' : '');
+        st.textContent = t + ' / 田中さんのLINEの登録: ' + (r.registered ? '済み' : 'まだ') + (r.basicId ? ' / LINEのID: ' + r.basicId : '') + (r.registered ? ' / 読み込み待ち: ' + r.waiting + '件' : '') +
+          (r.dayOver ? ' / 今日の上限に達したため、LINEの' + ({ in: '受け取り', run: '読み込み', push: '通知' }[r.dayOver] || '処理') + 'を止めています(明日、自動で再開)' : '');
       }).catch(function () { st.className = 'status ng'; st.textContent = ERR.failed; });
     }
     loadLine();
