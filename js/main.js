@@ -81,8 +81,8 @@
       }
       if (!Array.isArray(items) || !items.length) {
         if (box.id === 'news-list' && document.querySelector('#kikiten-banner .kk-banner')) return;   // 案内カードがあれば、空の文は出さない
-        var sec = box.closest('section');
-        if (sec && sec.hasAttribute('data-hide-empty')) { sec.hidden = true; return; }
+        var sec = box.closest('[data-hide-empty]');   // 空なら、その欄(見出しごと)を隠す
+        if (sec) { sec.hidden = true; return; }
         if (empty) box.appendChild(el('p', 'muted', empty));
         return;
       }
@@ -230,6 +230,34 @@
     });
   }
 
+  // ボランティアスタッフの登録(GAS の join.submit。管理者がLINEで確かめて名簿に入れる)
+  var jform = document.getElementById('join-form');
+  if (jform) {
+    var jst = document.getElementById('j-status'), jsend = document.getElementById('j-send');
+    var jng = function (t) { jst.className = 'status ng'; jst.textContent = t; };
+    if (!GAS) { jsend.disabled = true; jst.className = 'status'; jst.textContent = 'ただいま準備中のため、送信できません。'; }
+    jform.addEventListener('submit', function (e) {
+      e.preventDefault();
+      jst.className = 'status'; jst.textContent = '';
+      var fd = new FormData(jform);
+      var name = String(fd.get('name') || '').trim();
+      var mail = String(fd.get('email') || '').trim(), mail2 = String(fd.get('email2') || '').trim();
+      if (!name) return jng('「お名前」を入力してください。');
+      if (!mail) return jng('メールアドレスを入力してください。');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return jng('メールアドレスの形が正しくないようです。もう一度ご確認ください。');
+      if (mail.toLowerCase() !== mail2.toLowerCase()) return jng('確認用のメールアドレスが、上と同じではありません。');
+      if (!document.getElementById('j-agree').checked) return jng('「同意します」にチェックを入れてください。');
+      jsend.disabled = true; jst.textContent = '送信しています…';
+      window.callGas({ action: 'join.submit', name: name, email: mail, agree: true, website: String(fd.get('website') || '') })
+        .then(function (j) {
+          if (j && j.ok) { jst.className = 'status ok'; jst.textContent = '送信しました。ありがとうございます。管理者が確認して登録します(数日かかることがあります)。'; jform.reset(); }
+          else if (j && j.reason === 'busy') { jng('いま送信が混み合っています。少し時間をおいて、もう一度お試しください。'); jsend.disabled = false; }
+          else if (j && j.reason === 'email') { jng('メールアドレスの形が正しくないようです。もう一度ご確認ください。'); jsend.disabled = false; }
+          else { jng('送信できませんでした。時間をおいて、もう一度お試しください。'); jsend.disabled = false; }
+        }).catch(function () { jng('送信できませんでした。時間をおいて、もう一度お試しください。'); jsend.disabled = false; });
+    });
+  }
+
   // みんなのお知らせへの投稿(GAS の board.submit。管理者がLINEで確かめてから載せる)
   var bform = document.getElementById('board-form');
   if (bform) {
@@ -311,8 +339,22 @@
         document.getElementById('member-hello').textContent = 'ログインしました。';
         document.getElementById('member-area').hidden = false;
         window.APP = { cred: resp.credential, role: j.role };   // ログイン情報は、このページの中(メモリ)だけに置く。保存しない
+        try { localStorage.setItem('hp_staff', '1'); } catch (e) {}   // この端末は、以後アクセス数に数えない(関係者)
         document.dispatchEvent(new Event('member-ready'));
       }).catch(function () { authSt.className = 'status ng'; authSt.textContent = '確認できませんでした。時間をおいて、もう一度お試しください。'; });
     };
   }
+
+  // アクセス数の集計(GoatCounter・Cookieなし)。コードが無い・関係者の端末・手元の確認では数えない
+  (function () {
+    var code = "";
+    if (!code || location.protocol !== 'https:') return;
+    try {
+      if (location.hash === '#nocount') localStorage.setItem('hp_staff', '1');
+      if (localStorage.getItem('hp_staff') === '1') return;
+    } catch (e) {}
+    var q = 'p=' + encodeURIComponent(location.pathname) + '&t=' + encodeURIComponent(document.title) +
+            '&r=' + encodeURIComponent(document.referrer || '') + '&s=' + ((window.screen && screen.width) || 0) + '&rnd=' + Math.random().toString(36).slice(2);
+    new Image().src = 'https://' + code + '.goatcounter.com/count?' + q;
+  })();
 })();

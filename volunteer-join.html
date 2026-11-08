@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<meta name="description" content="高知発達ブースは、お子さまの発達や暮らしについて、専門職がお話をうかがい、一緒に考える相談ブースです。">
+<title>ボランティアスタッフの登録 | 高知発達ブースのいろいろ</title>
+<link rel="icon" href="img/logo.webp" type="image/webp">
+<link rel="stylesheet" href="css/style.css?v=58435bc429">
+</head>
+<body class="">
+<a class="skip" href="#main">本文へ</a>
+<header class="site-header">
+  <div class="wrap header-in">
+    <a class="brand" href="index.html"><img src="img/bear.webp" alt="" width="56" height="56"><span><span class="nb">高知発達ブース</span><span class="nb">のいろいろ</span></span></a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav" hidden>メニュー</button>
+  </div>
+  <nav id="nav" class="site-nav" aria-label="メニュー"><ul><li><a href="index.html">トップ</a></li><li><a href="about.html">概要</a></li><li><a href="events.html">イベント情報</a></li><li><a href="gallery.html">フォトギャラリー</a></li><li><a href="board.html">みんなのお知らせ</a></li><li><a href="links.html">リンク</a></li><li><a href="makers.html">メーカー紹介</a></li><li><a href="contact.html">お問い合わせ</a></li><li><a href="staff.html">関係者の方</a></li></ul></nav>
+</header>
+<main id="main" class="wrap">
+
+<h1>ボランティアスタッフの登録</h1>
+<p class="lead">ボランティアスタッフ向けのページ(当日の流れ・配置・定例会のお知らせなど)を見るための登録です。</p>
+<div class="note-box">
+  <p><strong>パスワードは不要です。入力しないでください。</strong></p>
+  <p>登録するのは、お名前と、Googleのアカウント(ふだんお使いのGmailなど)のメールアドレスだけです。ログインはGoogleの画面で行うので、このサイトがパスワードを知ることはありません。</p>
+</div>
+<p class="hint">登録しなくても、一般の方向けのページは、これまでどおりご覧いただけます。ただ、ボランティア向けのページには当日の流れなども載せますので、できればご協力をお願いします。</p>
+
+<form id="join-form" class="form" novalidate>
+  <div class="field">
+    <label for="j-name">お名前 <span class="req">必須</span></label>
+    <input id="j-name" name="name" type="text" maxlength="60" autocomplete="name" required placeholder="例: 高知 花子">
+    <p class="hint">グループLINEでのお名前でも大丈夫です。</p>
+  </div>
+  <div class="field">
+    <label for="j-mail">Googleのアカウントのメールアドレス <span class="req">必須</span></label>
+    <input id="j-mail" name="email" type="email" maxlength="120" autocomplete="email" inputmode="email" required placeholder="例: hanako@gmail.com">
+    <p class="hint">ログインに使うGoogleのアカウントです。ふだんお使いのGmailで大丈夫です。</p>
+  </div>
+  <div class="field">
+    <label for="j-mail2">確認のため、もう一度 <span class="req">必須</span></label>
+    <input id="j-mail2" name="email2" type="email" maxlength="120" autocomplete="off" inputmode="email" required placeholder="上と同じアドレス">
+  </div>
+  <div class="field">
+    <label class="check"><input id="j-agree" name="agree" type="checkbox" value="1"> 名簿に登録し、ログインの確認に使うことに同意します</label>
+  </div>
+  <div class="trap" aria-hidden="true">
+    <label for="j-web">このらんは、空のままにしてください</label>
+    <input id="j-web" name="website" type="text" tabindex="-1" autocomplete="off">
+  </div>
+  <p class="hint">お名前・メールアドレスは、管理者がボランティアの方かを確かめることと、ログインの確認にだけ使います。このサイトには載せません。</p>
+  <p id="j-status" class="status" role="status" aria-live="polite"></p>
+  <button id="j-send" class="btn" type="submit">登録をお願いする</button>
+</form>
+
+<section aria-labelledby="join-next">
+  <h2 id="join-next">送ったあとは</h2>
+  <ol>
+    <li>送信すると、画面に「送信しました」と出ます。管理者が確認して、数日のうちに名簿に登録します(登録の完了のお知らせは、個別には届きません)。</li>
+    <li>数日たったら、<a href="volunteer.html?openExternalBrowser=1">ボランティアスタッフのページ</a>を開き、「Googleでログイン」を押して、登録したアカウントを選んでください。</li>
+    <li>上のリンクは、LINEから押すと、自動でふだんのブラウザ(SafariやChromeなど)で開きます。LINEの中の画面のままでは、ログインできません。</li>
+  </ol>
+  <p class="small">ログインできないときは、少し日をおいてもう一度お試しください。それでも入れないときは、<a href="contact.html">お問い合わせ</a>からご連絡ください。</p>
+</section>
+
+<nav class="next-steps" aria-label="ほかのページ"><a class="btn" href="staff.html">関係者の方のページへ</a></nav>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="foot-brand"><img src="img/bear.webp" alt="" width="44" height="44"><span>高知発達ブースのいろいろ</span></p>
+    <ul class="foot-links">
+      <li><a href="contact.html">お問い合わせ</a></li>
+      <li><a href="links.html">リンク</a></li>
+      <li><a href="staff.html">関係者の方</a></li>
+    </ul>
+    <p class="small">このサイトには広告・アクセス解析はありません。</p>
+    <p class="small">© 高知発達ブースのいろいろ</p>
+  </div>
+</footer>
+<script src="config.js" defer></script>
+<script src="js/main.js?v=58435bc429" defer></script>
+
+</body>
+</html>
