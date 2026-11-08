@@ -5,7 +5,7 @@
   var KINDS = ['お知らせ', 'イベント', '単発イベント', '機器展の内容', 'タスク', 'その他'];
   var KIND_HINT = '種類: 高知ふくし機器展そのもの=「イベント」(開催の1か月前から、トップに機器展の案内カードが出る)/機器展の中のセミナー・展示・地図・資料=「機器展の内容」(機器展のページに出る。終わっても残る)/勉強会などの単発=「単発イベント」(トップ・みんなのお知らせ掲示板に出る)。日付(終了日)を過ぎると、一般向けのお知らせ・掲示板から自動で消えます。';
   var TOPICS = ['配置', '当日の流れ', '相談', '議事録置き場', 'セミナー', '定例会予定', '事務局への回答'];
-  var ATTENDS = ['全員参加', '希望者のみ', 'リーダーのみ'];
+  var ATTENDS = ['全員', '希望者のみ', 'リーダーのみ'];   // gas/main/Config.js と合わせる(2026-11-08 「全員参加」→「全員」)
   var PROGRESS_LABEL = { '': '(なし)', open: 'これから', doing: '対応中', done: '対応済み' };
   var TASK_LABEL = { open: 'これから', doing: '対応中', done: '済' };
   var STATUS_LABEL = { active: '公開中', withdrawn: '取り下げ済み' };
@@ -318,9 +318,9 @@
   // 載せ方の指定(載せる先・話題・参加区分・補足メモ)。貼り付けと画像・PDFで共通。空のものは、AIの提案に任せる。
   function presetBox() {
     var tcp = targetChecks('');   // 何も選ばなければ、AIが提案する
-    var topic = sel([''].concat(TOPICS), '', function (o) { return o || '(おまかせ・話題なし)'; });
+    var topic = sel([''].concat(KNOWN_TOPICS), '', function (o) { return o || '(おまかせ・話題なし)'; });
     var attend = sel([''].concat(ATTENDS), '', function (o) { return o || '(指定なし)'; });
-    var memo = h('textarea', { rows: '2', maxlength: '300', 'aria-label': '補足メモ', placeholder: '例: 全員参加は不要です。参加できる方だけで。' });
+    var memo = h('textarea', { rows: '2', maxlength: '300', 'aria-label': '補足メモ', placeholder: '例: 全員でなくてよいです。参加できる方だけで。' });
     var box = h('section', { class: 'item' }, [
       h('p', { class: 'hint', text: 'ここで指定すると、承認待ちに、その内容で入ります(承認のときにも直せます)。空のところは、AIが提案します。' }),
       field('載せる先(複数選べます。選ばなければ、AIが提案します)', tcp.box), field('話題(ボランティア向けのとき)', topic), field('参加区分(ボランティア向けのとき)', attend),
@@ -895,6 +895,36 @@
     load();
   }
 
+  // ---- 設定: ボランティア向けの話題(追加は、承認・修正のときに文字で入れる。ここでは消す)
+  function renderTopicSettings() {
+    view.appendChild(h('h2', { text: 'ボランティア向けの話題' }));
+    view.appendChild(h('p', { class: 'hint', text: '使わなくなった話題を消せます。消すと、その話題を使っていたお知らせは「話題なし」になります(お知らせ自体は消えません)。新しい話題は、承認や修正のときに「＋ 新しい話題を文字で入れる」から足せます。機器展のページの欄(セミナーなど)は変わりません。' }));
+    var list = h('div', { class: 'list' });
+    var tres = h('p', { class: 'status', role: 'status' });
+    view.appendChild(list); view.appendChild(tres);
+    function load() {
+      list.textContent = '';
+      api('admin.topics.list').then(function (r) {
+        if (!r || !r.ok) { tres.className = 'status ng'; tres.textContent = errText(r); return; }
+        KNOWN_TOPICS = r.topics.map(function (t) { return t.name; });
+        if (!r.topics.length) list.appendChild(h('p', { class: 'muted', text: '話題はありません。' }));
+        r.topics.forEach(function (t) {
+          var armed = false;
+          var del = h('button', { class: 'btn-sub', type: 'button', text: '消す', onclick: function () {
+            if (!armed) { armed = true; del.textContent = t.count ? '本当に消す(' + t.count + '件が話題なしに。もう一度押す)' : '本当に消す(もう一度押す)'; setTimeout(function () { armed = false; del.textContent = '消す'; }, 5000); return; }
+            del.disabled = true; tres.className = 'status'; tres.textContent = '消しています…';
+            api('admin.topic.delete', { topic: t.name }).then(function (x) {
+              if (x && x.ok) { tres.className = 'status ok'; tres.textContent = '「' + t.name + '」を消しました' + (x.count ? '(' + x.count + '件を話題なしにしました)' : '') + '。'; load(); }
+              else { del.disabled = false; tres.className = 'status ng'; tres.textContent = errText(x); }
+            }).catch(function () { del.disabled = false; tres.className = 'status ng'; tres.textContent = ERR.failed; });
+          } });
+          list.appendChild(h('div', { class: 'item' }, [h('p', { text: t.name + '(使っている数: ' + t.count + '件)' }), h('div', { class: 'btn-row' }, [del])]));
+        });
+      }).catch(function () { tres.className = 'status ng'; tres.textContent = ERR.failed; });
+    }
+    load();
+  }
+
   // ---- 設定
   function renderSettings() {
     view.textContent = '';
@@ -923,6 +953,7 @@
     } })]));
     view.appendChild(fres);
     renderMediaSettings();
+    renderTopicSettings();
     renderLineSettings();
     view.appendChild(h('h2', { text: '写真の保存の診断' }));
     view.appendChild(h('p', { class: 'hint', text: '写真を載せられないときに押してください。ドライブ(取り込み元の保存)と、サイト(GitHub)への保存を、それぞれ試して、結果を表示します。' }));
