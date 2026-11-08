@@ -18,6 +18,12 @@
     d.appendChild(h('h3', { text: it.title }));
     if (it.place) d.appendChild(h('p', { text: '場所: ' + it.place }));
     if (it.summary) d.appendChild(h('p', { text: it.summary }));
+    (Array.isArray(it.images) ? it.images : []).slice(0, 6).forEach(function (im) {   // 写真・資料(サイトの img/up・files/up の中のものだけ)
+      var src = /^img\/up\/[A-Za-z0-9_.-]+$/.test(String(im && im.src || '')) ? String(im.src) : '';
+      var pdf = /^files\/up\/[A-Za-z0-9_.-]+\.pdf$/.test(String(im && im.pdf || '')) ? String(im.pdf) : '';
+      if (src) { var a1 = h('a', { href: pdf || src, target: '_blank', rel: 'noopener noreferrer' }, [h('img', { src: src, alt: String(im.alt || ''), loading: 'lazy', style: 'max-width:100%;height:auto;border-radius:8px' })]); d.appendChild(h('p', {}, [a1])); }
+      if (pdf) d.appendChild(h('p', {}, [h('a', { href: pdf, target: '_blank', rel: 'noopener noreferrer', text: '資料(PDF)を開く' })]));
+    });
     if (it.url && /^https:\/\//.test(it.url)) {
       var a = h('a', { text: '詳しく見る', href: it.url, target: '_blank', rel: 'noopener noreferrer' });
       d.appendChild(h('p', {}, [a]));
