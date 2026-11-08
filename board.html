@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex">
 <meta name="description" content="高知発達ブースは、お子さまの発達や暮らしについて、専門職がお話をうかがい、一緒に考える相談ブースです。">
 <title>みんなのお知らせ | 高知発達ブースのいろいろ</title>
 <link rel="icon" href="img/logo.webp" type="image/webp">
-<link rel="stylesheet" href="css/style.css?v=2477bbe97e">
+<link rel="stylesheet" href="css/style.css?v=8861b9954e">
 </head>
 <body class="">
 <a class="skip" href="#main">本文へ</a>
@@ -29,6 +29,63 @@
 </div>
 <p class="small">開催日を過ぎたお知らせは、自動で表示されなくなります。確認ができたものだけを掲載しています。</p>
 
+<section aria-labelledby="post-h">
+<h2 id="post-h">お知らせを載せたい方へ</h2>
+<p>発達やお子さまに関わる勉強会・講演会・交流会などのお知らせを、どなたからでも受け付けています。</p>
+<p class="hint">送っていただいた内容は、このサイトの管理者が確認してから載せます(数日かかることがあります)。内容によっては、載せられないことや、確認のためにご連絡することがあります。</p>
+<form id="board-form" class="form" novalidate>
+  <div class="field">
+    <label for="b-title">題名 <span class="req">必須</span></label>
+    <input id="b-title" name="title" type="text" maxlength="80" required placeholder="例: 発達が気になる子の関わり方 勉強会">
+  </div>
+  <div class="field">
+    <label for="b-date">日付 <span class="req">必須</span></label>
+    <input id="b-date" name="date" type="date" required>
+    <p class="hint">この日を過ぎると、自動で表示されなくなります。</p>
+  </div>
+  <div class="field">
+    <label for="b-time">時間 <span class="opt">(任意)</span></label>
+    <input id="b-time" name="timeText" type="text" maxlength="60" placeholder="例: 13:30〜15:00">
+  </div>
+  <div class="field">
+    <label for="b-place">場所 <span class="opt">(任意)</span></label>
+    <input id="b-place" name="place" type="text" maxlength="80" placeholder="例: 高知市○○会館 2階/オンライン">
+  </div>
+  <div class="field">
+    <label for="b-body">内容 <span class="req">必須</span></label>
+    <textarea id="b-body" name="body" rows="6" maxlength="400" required placeholder="例: 対象・参加費・申し込み方法・問い合わせ先など(400字まで)"></textarea>
+  </div>
+  <div class="field">
+    <label for="b-url">くわしいページのURL <span class="opt">(任意)</span></label>
+    <input id="b-url" name="url" type="url" maxlength="300" inputmode="url" placeholder="https://…">
+  </div>
+  <div class="field">
+    <label for="b-file">チラシ(写真かPDFを1つ) <span class="opt">(任意)</span></label>
+    <input id="b-file" name="file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+    <p class="hint">写真は自動で小さくして送ります。PDFは5MBまでです。</p>
+  </div>
+  <div class="field">
+    <label for="b-name">お名前・団体名 <span class="req">必須</span> <span class="opt">(公開しません)</span></label>
+    <input id="b-name" name="name" type="text" maxlength="60" autocomplete="name" required>
+  </div>
+  <div class="field">
+    <label for="b-mail">メールアドレス <span class="req">どちらか必須</span> <span class="opt">(公開しません)</span></label>
+    <input id="b-mail" name="email" type="email" maxlength="120" autocomplete="email" inputmode="email">
+  </div>
+  <div class="field">
+    <label for="b-tel">電話番号 <span class="req">どちらか必須</span> <span class="opt">(公開しません)</span></label>
+    <input id="b-tel" name="tel" type="tel" maxlength="20" autocomplete="tel" inputmode="tel">
+  </div>
+  <div class="trap" aria-hidden="true">
+    <label for="b-web">このらんは、空のままにしてください</label>
+    <input id="b-web" name="website" type="text" tabindex="-1" autocomplete="off">
+  </div>
+  <p class="hint">お名前・連絡先は、内容の確認のためだけに使い、このサイトには載せません。題名・日付・時間・場所・内容・URL・チラシが、そのまま載ります。</p>
+  <p id="b-status" class="status" role="status" aria-live="polite"></p>
+  <button id="b-send" class="btn" type="submit">送信する</button>
+</form>
+</section>
+
 <nav class="next-steps" aria-label="ほかのページ"><a class="btn-sub" href="events.html">イベント情報</a><a class="btn" href="contact.html">お問い合わせ</a></nav>
 </main>
 <footer class="site-footer">
@@ -44,7 +101,7 @@
   </div>
 </footer>
 <script src="config.js" defer></script>
-<script src="js/main.js?v=2477bbe97e" defer></script>
+<script src="js/main.js?v=8861b9954e" defer></script>
 
 </body>
 </html>

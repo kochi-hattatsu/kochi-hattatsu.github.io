@@ -205,6 +205,66 @@
     });
   }
 
+  // みんなのお知らせへの投稿(GAS の board.submit。管理者がLINEで確かめてから載せる)
+  var bform = document.getElementById('board-form');
+  if (bform) {
+    var bst = document.getElementById('b-status'), bsend = document.getElementById('b-send');
+    if (!GAS) { bsend.disabled = true; bst.textContent = 'ただいま準備中のため、送信できません。'; }
+    var bng = function (t) { bst.className = 'status ng'; bst.textContent = t; };
+    // 写真は長い辺 1800px の JPEG に小さくする(送る量を減らす)。PDF はそのまま(5MBまで)
+    var readFile = function (f) {
+      return new Promise(function (ok, ng) {
+        if (!f) return ok(null);
+        var mime = String(f.type || '');
+        if (['image/jpeg', 'image/png', 'image/webp', 'application/pdf'].indexOf(mime) < 0) return ng(new Error('type'));
+        if (mime === 'application/pdf' && f.size > 5 * 1024 * 1024) return ng(new Error('size'));
+        if (f.size > 30 * 1024 * 1024) return ng(new Error('size'));
+        var rd = new FileReader();
+        rd.onerror = function () { ng(new Error('read')); };
+        rd.onload = function () {
+          var url = String(rd.result || '');
+          if (mime === 'application/pdf' || (f.size <= 1500000 && mime !== 'image/png')) return ok({ mime: mime, b64: url.slice(url.indexOf(',') + 1) });
+          var im = new Image();
+          im.onerror = function () { ng(new Error('read')); };
+          im.onload = function () {
+            var k = Math.min(1, 1800 / Math.max(im.naturalWidth, im.naturalHeight));
+            var cv = document.createElement('canvas'); cv.width = Math.round(im.naturalWidth * k); cv.height = Math.round(im.naturalHeight * k);
+            var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(im, 0, 0, cv.width, cv.height);
+            var out = cv.toDataURL('image/jpeg', 0.85);
+            ok({ mime: 'image/jpeg', b64: out.slice(out.indexOf(',') + 1) });
+          };
+          im.src = url;
+        };
+        rd.readAsDataURL(f);
+      });
+    };
+    var BMSG = { title: '「題名」を入力してください。', date: '「日付」を、今日から1年以内で選んでください。', body: '「内容」を入力してください(400字まで)。', url: 'URLは https:// から始まるものを入力してください。',
+      name: '「お名前・団体名」を入力してください。', contact: 'メールアドレスか電話番号の、どちらかを入力してください。', email: 'メールアドレスの形を確かめてください。', tel: '電話番号は、数字とハイフンで入力してください。',
+      file: 'チラシのファイルを確かめてください(写真かPDF・PDFは5MBまで)。', busy: 'ただいま投稿が集中しています。時間をおいて、もう一度お試しください。' };
+    bform.addEventListener('submit', function (e) {
+      e.preventDefault();
+      bst.className = 'status'; bst.textContent = '';
+      var fd = new FormData(bform), g = function (k) { return String(fd.get(k) || '').trim(); };
+      if (!g('title')) return bng(BMSG.title);
+      if (!g('date')) return bng(BMSG.date);
+      if (!g('body')) return bng(BMSG.body);
+      if (g('url') && !/^https:\/\//.test(g('url'))) return bng(BMSG.url);
+      if (!g('name')) return bng(BMSG.name);
+      if (!g('email') && !g('tel')) return bng(BMSG.contact);
+      var f = document.getElementById('b-file').files[0] || null;
+      bsend.disabled = true; bst.textContent = '送信しています…';
+      readFile(f).then(function (file) {
+        var body = { action: 'board.submit', title: g('title'), date: g('date'), timeText: g('timeText'), place: g('place'), body: g('body'), url: g('url'),
+          name: g('name'), email: g('email'), tel: g('tel'), website: String(fd.get('website') || '') };
+        if (file) body.file = file;
+        return window.callGas(body);
+      }, function () { throw { reason: 'file' }; }).then(function (j) {
+        if (j && j.ok) { bst.className = 'status ok'; bst.textContent = '送信しました。管理者が確認してから載せます。ありがとうございました。'; bform.reset(); bsend.disabled = false; return; }
+        bng(BMSG[j && j.reason] || '送信できませんでした。時間をおいて、もう一度お試しください。'); bsend.disabled = false;
+      }).catch(function (err) { bng(BMSG[err && err.reason] || '送信できませんでした。時間をおいて、もう一度お試しください。'); bsend.disabled = false; });
+    });
+  }
+
   // ログインのあるページ(ボランティア・管理者)
   var loginBox = document.getElementById('login-box');
   if (loginBox) {
