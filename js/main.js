@@ -100,8 +100,11 @@
           more.appendChild(el('summary', null, 'くわしく見る')); tgt = more;
           // 本文の頭の「・日時:…」「・場所:…」は、上の日時・場所と重なるので飛ばして、内容から見せる
           var b0 = String(it.body || '').replace(/\s+/g, ' ').replace(/[・･]?\s*(日時|日程|場所|会場)\s*[:：][^・･。]*[。]?/g, '').replace(/^[・･\s]*(内容|概要)\s*[:：]\s*/, '').replace(/^[・･\s]+/, '').trim();
-          var cut = b0.search(/[。!?！？]/);
-          var lead = cut > 0 && cut < 70 ? b0.slice(0, cut + 1) : (b0.length > 60 ? b0.slice(0, 60) + '…' : b0);
+          // 最初のひとまとまり(「。」まで、または次の「・」の手前)。長いときは( )の中を外し、それでも長ければ「、」の切れ目で止める(語の途中で切らない)
+          var m0 = /^(.*?[。!?！？])/.exec(b0), seg = b0.split(/\s[・･]/)[0];
+          var lead = m0 && m0[1].length <= seg.length ? m0[1] : seg;
+          if (lead.length > 70) lead = lead.replace(/[（(][^）)]*[）)]/g, '').trim();
+          if (lead.length > 70) { var k = lead.lastIndexOf('、', 60); lead = (k > 20 ? lead.slice(0, k) : lead.slice(0, 60)) + '…'; }
           if (lead) main.appendChild(el('p', 'item-lead', lead));   // 最初の一文(続きは「くわしく見る」の中)
         }
         if (it.body) tgt.appendChild(el('p', null, String(it.body)));
