@@ -364,6 +364,7 @@
   (function () {
     var code = "kochi-hattatsu";
     if (!code || location.protocol !== 'https:') return;
+    if (/(admin|volunteer|edit)-page/.test(document.body.className) || /\/staff\.html$/.test(location.pathname)) return;   // 関係者のページは数えない(ログインの前に開いた1回も)
     try {
       if (location.hash === '#nocount') localStorage.setItem('hp_staff', '1');
       if (localStorage.getItem('hp_staff') === '1') return;

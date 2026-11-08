@@ -931,7 +931,10 @@
     '/volunteer.html': 'ボランティアの方(ログイン)', '/volunteer-join.html': 'ボランティアスタッフの登録', '/admin.html': '管理者の方', '/edit.html': 'その場で直す',
     '/poster2026/': 'ポスター発表', '/poster2026/index.html': 'ポスター発表', '/404.html': '(ページが見つからない)' };
   var SIZE_NAMES = { 'Phones': 'スマホ', 'Large phones, small tablets': '大きめのスマホ・小さいタブレット', 'Tablets and small laptops': 'タブレット・小さいパソコン',
-    'Computer monitors': 'パソコン', 'Computer monitors larger than HD': '大きな画面のパソコン', '(unknown)': 'わからない' };
+    'Computer monitors': 'パソコン', 'Computer monitors larger than HD': '大きな画面のパソコン', '(unknown)': 'わからない',
+    phone: 'スマホ', largephone: '大きめのスマホ・小さいタブレット', tablet: 'タブレット・小さいパソコン', desktop: 'パソコン', desktophd: '大きな画面のパソコン', unknown: 'わからない' };
+  var SIZE_ORDER = ['スマホ', '大きめのスマホ・小さいタブレット', 'タブレット・小さいパソコン', 'パソコン', '大きな画面のパソコン', 'わからない'];   // 名前も記号も無いときは、GoatCounter の並び順で
+  function sizeName(x) { return SIZE_NAMES[x.name] || SIZE_NAMES[String(x.id).toLowerCase()] || x.name || SIZE_ORDER[x.i] || 'わからない'; }
   function pageName(p) {
     var path = String(p.path || '').replace(/^\/[^\/]*\.github\.io/, '');
     var m = /^\/kikiten-(\d{4})\.html$/.exec(path);
@@ -1010,8 +1013,8 @@
           h('p', { class: 'hint', text: (r.daily.length ? r.daily[0].day.slice(5).replace('-', '/') : '') + ' 〜 今日(いちばん多い日 ' + dmax + '人)' })]));
         out.appendChild(barTable('よく見られているページ', r.pages, pageName));
         out.appendChild(barTable('どこから来たか', r.refs, function (x) { return refName(x.name); }, 'LINEやQRコードから開いた場合は「直接」に入ることが多いです。'));
-        out.appendChild(barTable('スマホかパソコンか', r.sizes, function (x) { return SIZE_NAMES[x.name] || x.name; }));
-        out.appendChild(barTable('見ている場所', r.locations, function (x) { return placeName(x.name); }));
+        out.appendChild(barTable('スマホかパソコンか', r.sizes, sizeName, '画面の大きさで分けています。'));
+        out.appendChild(barTable('見ている場所', r.locations, function (x) { return placeName(x.name || x.id); }));
         out.appendChild(h('p', { class: 'small', text: '数えた時刻: ' + String(r.at || '').replace('T', ' ').slice(0, 16) + '。くわしい画面(英語)は https://kochi-hattatsu.goatcounter.com/ です。' }));
       }).catch(function () { st.className = 'status ng'; st.textContent = ERR.failed; });
     }
