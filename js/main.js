@@ -149,6 +149,28 @@
   var lists = document.querySelectorAll('[data-src]');
   for (var i = 0; i < lists.length; i++) renderList(lists[i]);
 
+  // 機器展のページのチラシ・地図(data/kikiten_media.json。年と種類で選ぶ)。画像が無ければ欄ごと隠したまま
+  var medias = document.querySelectorAll('[data-media]');
+  Array.prototype.forEach.call(medias, function (box) {
+    fetch(box.getAttribute('data-media'), { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : []; }).then(function (items) {
+      var yr = box.getAttribute('data-year'), sl = box.getAttribute('data-slot');
+      items = (Array.isArray(items) ? items : []).filter(function (it) {
+        return it && String(it.year) === yr && it.slot === sl && /^img\/(kikiten\/\d{4}|up)\/[A-Za-z0-9_.-]+$/.test(String(it.src || ''));
+      });
+      if (!items.length) return;
+      items.forEach(function (it) {
+        var f = el('figure', 'media');
+        var a = el('a'); a.href = String(it.src); a.target = '_blank'; a.rel = 'noopener';
+        var img = el('img'); img.src = String(it.src); img.alt = String(it.alt || it.caption || (sl === 'flyer' ? 'チラシ' : '地図')); img.loading = 'lazy';
+        a.appendChild(img); f.appendChild(a);
+        if (it.caption) f.appendChild(el('figcaption', null, String(it.caption)));
+        box.appendChild(f);
+      });
+      box.classList.add('n' + Math.min(items.length, 3));
+      var sec = box.closest('section'); if (sec) sec.hidden = false;
+    }).catch(function () { /* 出せなくても、ほかは出す */ });
+  });
+
   var GAS = (typeof GAS_URL === 'string' && /^https:\/\/script\.google\.com\//.test(GAS_URL)) ? GAS_URL : '';
 
   // GASへは text/plain で送る(事前確認の通信を避ける。試作で確認済み)

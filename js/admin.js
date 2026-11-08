@@ -3,7 +3,7 @@
   'use strict';
   var TARGET_LABEL = { public: '一般向け(誰でも見られる)', maker: 'メーカー向け', volunteer: 'ボランティア向け', skip: '載せない' };
   var KINDS = ['お知らせ', 'イベント', '単発イベント', '機器展の内容', 'タスク', 'その他'];
-  var KIND_HINT = '種類: 高知ふくし機器展そのもの=「イベント」(トップ・イベント情報に出る)/機器展の中のセミナー・展示・地図・資料=「機器展の内容」(機器展のページに出る。終わっても残る)/勉強会などの単発=「単発イベント」(トップ・みんなのお知らせ掲示板に出る)。日付(終了日)を過ぎると、一般向けのお知らせ・掲示板から自動で消えます。';
+  var KIND_HINT = '種類: 高知ふくし機器展そのもの=「イベント」(開催の1か月前から、トップに機器展の案内カードが出る)/機器展の中のセミナー・展示・地図・資料=「機器展の内容」(機器展のページに出る。終わっても残る)/勉強会などの単発=「単発イベント」(トップ・みんなのお知らせ掲示板に出る)。日付(終了日)を過ぎると、一般向けのお知らせ・掲示板から自動で消えます。';
   var TOPICS = ['配置', '当日の流れ', '相談', '議事録置き場', 'セミナー', '定例会予定', '事務局への回答'];
   var ATTENDS = ['全員参加', '希望者のみ', 'リーダーのみ'];
   var PROGRESS_LABEL = { '': '(なし)', open: 'これから', doing: '対応中', done: '対応済み' };
@@ -100,7 +100,7 @@
     var t = [].concat(targets || []), links = [];
     if (t.indexOf('public') >= 0) {
       if (kind === '機器展の内容') links.push(['機器展のページ', 'kikiten-' + fiscalYearOf(date) + '.html']);
-      if (kind === 'イベント') links.push(['イベント情報', 'events.html']);
+      if (kind === 'イベント') links.push(['機器展のページ', 'kikiten-' + fiscalYearOf(date) + '.html']);
       if (kind === '単発イベント') links.push(['みんなのお知らせ', 'board.html']);
       if (['お知らせ', 'イベント', '単発イベント', 'その他'].indexOf(kind) >= 0) links.push(['トップページ', 'index.html']);
     }
@@ -519,10 +519,19 @@
       api('admin.published.withdraw', { id: it.id, restore: true }).then(function (r) { if (done(r, '公開に戻しました。')) setTimeout(function () { card.remove(); }, 1500); else restore.disabled = false; })
         .catch(function () { restore.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
     } });
+    var delArmed = false;
+    var del = h('button', { class: 'btn-sub', type: 'button', text: '完全に消す', onclick: function () {
+      if (!delArmed) { delArmed = true; del.textContent = '本当に消す(戻せません。もう一度押す)'; setTimeout(function () { delArmed = false; del.textContent = '完全に消す'; }, 5000); return; }
+      del.disabled = true; restore.disabled = true;
+      api('admin.published.delete', { id: it.id }).then(function (r) {
+        if (r && r.ok) { res.className = 'status ok'; res.textContent = '消しました。'; setTimeout(function () { if (onChange) onChange(); else card.remove(); }, 1200); }
+        else { del.disabled = false; restore.disabled = false; res.className = 'status ng'; res.textContent = r && r.reason === 'notfound' ? 'すでに消えているか、公開中に戻っています。' : errText(r); }
+      }).catch(function () { del.disabled = false; restore.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
+    } });
     var source = srcBox('', it.source_url, '元の資料を開く');
     [badges, dupNote, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます。あとから追加もできます)', tcq.box), field('話題(ボランティア向けのとき。一覧にないものは文字で入れられます)', topic.box),
       field('参加区分(ボランティア向けのとき)', attend), field('日付(開始日)', date), field('終了日(複数日のとき。この日を過ぎると一般向けから消えます)', endDate), field('日時の文章', dateText), field('場所', place), field('要約', summary),
-      field('リンク(https)', url), field('対応状況(依頼などのとき。ボランティア向けのページに出ます)', progress), field('対応メモ(送った内容・済んだことなど。ボランティア向けのページに出ます)', progNote), active ? pick.box : null, h('div', { class: 'btn-row' }, active ? [save, withdraw] : [restore]), res].forEach(function (x) { if (x) card.appendChild(x); });
+      field('リンク(https)', url), field('対応状況(依頼などのとき。ボランティア向けのページに出ます)', progress), field('対応メモ(送った内容・済んだことなど。ボランティア向けのページに出ます)', progNote), active ? pick.box : null, h('div', { class: 'btn-row' }, active ? [save, withdraw] : [restore, del]), res].forEach(function (x) { if (x) card.appendChild(x); });
     return card;
   }
 
@@ -570,9 +579,16 @@
 
   // ---- ページで直す: 公開しているページと同じ見た目で並べて、そこから直す・取り下げる・写真を足す
   var PAGE_GROUPS = [
-    ['top', 'トップのお知らせ'], ['board', 'みんなのお知らせ'], ['events', 'イベント情報'], ['kikiten', '機器展のページ'],
-    ['volunteer', 'ボランティア向け'], ['maker', 'メーカー向け'], ['out', '取り下げ済み']
+    ['top', 'トップのお知らせ'], ['board', 'みんなのお知らせ'], ['kikiten', '機器展のページ'],
+    ['volunteer', 'ボランティア向け'], ['out', '取り下げ済み']
   ];
+  var KEEP_DAYS = 30;   // gas/main/Config.js の WITHDRAWN_KEEP_DAYS と合わせる
+  function daysLeftText(it) {   // 取り下げ済みが自動で消えるまでの日数
+    var d = String(it.updated_at || it.published_at || '').slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return '自動で消えるまで: 不明';
+    var left = KEEP_DAYS - Math.floor((Date.parse(todayJst() + 'T00:00:00Z') - Date.parse(d + 'T00:00:00Z')) / 86400000);
+    return left <= 0 ? '次の朝に自動で消えます' : 'あと' + left + '日で自動で消えます';
+  }
   function todayJst() { var d = new Date(Date.now() + 9 * 3600000); return d.toISOString().slice(0, 10); }
   function isExpiredIt(it) { var last = it.end_date || it.date; return !!last && last < todayJst(); }
   function pageOf(it) {   // この内容が、どのページに出るか(複数のことがある)
@@ -580,13 +596,11 @@
     if (it.status !== 'active') return ['out'];
     var t = String(it.target || '').split(',');
     if (t.indexOf('public') >= 0) {
-      if (it.kind === '機器展の内容') g.push('kikiten');
-      if (it.kind === 'イベント') g.push('events');
+      if (it.kind === '機器展の内容' || it.kind === 'イベント') g.push('kikiten');   // イベント=機器展そのもの(トップの案内カードのもと)
       if (it.kind === '単発イベント' && !isExpiredIt(it)) g.push('board');
       if (['お知らせ', 'イベント', '単発イベント', 'その他'].indexOf(it.kind) >= 0 && !isExpiredIt(it)) g.push('top');
     }
     if (t.indexOf('volunteer') >= 0) g.push('volunteer');
-    if (t.indexOf('maker') >= 0) g.push('maker');
     return g;
   }
   function previewItem(it) {   // 公開ページと同じ並べ方の見本
@@ -631,13 +645,16 @@
         Array.prototype.forEach.call(chips.children, function (b) { b.className = 'tab' + (b.getAttribute('data-k') === liveGroup ? ' on' : ''); });
         var arr = by[liveGroup] || [];
         if (liveGroup === 'volunteer') { list.appendChild(tasksBox()); list.appendChild(addBox(renderLive)); }
-        else if (liveGroup === 'top' || liveGroup === 'board' || liveGroup === 'events' || liveGroup === 'kikiten') list.appendChild(addBox(renderLive));
+        else if (liveGroup === 'top' || liveGroup === 'board' || liveGroup === 'kikiten') list.appendChild(addBox(renderLive));
+        if (liveGroup === 'kikiten') list.appendChild(h('p', { class: 'hint', text: 'チラシ・地図の画像は、「設定」の「機器展のページのチラシ・地図」から入れ替えられます。' }));
+        if (liveGroup === 'out') list.appendChild(h('p', { class: 'hint', text: '取り下げ済みは、取り下げてから' + KEEP_DAYS + '日たつと自動で消えます(毎朝)。すぐ消すときは「直す…」から「完全に消す」を押してください。消したものは戻せません(週1回のバックアップには残ります)。' }));
         if (liveGroup === 'top') list.appendChild(h('p', { class: 'hint', text: 'トップには、新しいものから5件まで出ます(「トップに出ない」の印のものは、6件目以降です)。' }));
         if (!arr.length) { list.appendChild(h('p', { class: 'muted', text: 'このページに出ている内容はありません。' })); return; }
         arr.forEach(function (it) {
           var wrap = h('div', { class: 'livewrap' });
           if (liveGroup === 'top' && topIds.indexOf(it.id) < 0) wrap.appendChild(h('p', {}, [h('span', { class: 'badge warn', text: 'トップに出ない(5件を超えています)' })]));
           if (it.dup_title) wrap.appendChild(h('p', {}, [h('span', { class: 'badge warn', text: '重複かも' }), ' 近い内容: 「' + it.dup_title + '」']));
+          if (liveGroup === 'out') wrap.appendChild(h('p', {}, [h('span', { class: 'badge warn', text: daysLeftText(it) })]));
           wrap.appendChild(previewItem(it));
           var editor = null;
           var edit = h('button', { class: 'btn-sub', type: 'button', text: '直す・写真を足す・取り下げる', onclick: function () {
@@ -789,6 +806,95 @@
     view.appendChild(mres);
   }
 
+  // ---- 設定: 機器展のページ(kikiten-YYYY.html)のチラシ・地図。年ごとに入れ替える(data/kikiten_media.json)
+  var MEDIA_SLOTS = [['flyer', 'チラシ'], ['map', '地図(会場の配置図・会場までの地図など)']];
+  function prepMedia(f) {   // チラシの字が読めるよう、長い辺2400pxまで(JPEG)
+    if (!/^image\/(png|jpeg|webp)$/.test(f.type)) return Promise.reject(new Error('type'));
+    return createImageBitmap(f).then(function (bm) {
+      var sc = Math.min(1, 2400 / Math.max(bm.width, bm.height)), c = document.createElement('canvas');
+      c.width = Math.round(bm.width * sc); c.height = Math.round(bm.height * sc);
+      var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(bm, 0, 0, c.width, c.height);
+      return new Promise(function (ok, ng) {
+        c.toBlob(function (bl) { bl ? bl.arrayBuffer().then(function (buf) { ok({ mime: 'image/jpeg', b64: toB64(buf) }); }) : ng(new Error('img')); }, 'image/jpeg', 0.86);
+      });
+    });
+  }
+  function renderMediaSettings() {
+    view.appendChild(h('h2', { text: '機器展のページのチラシ・地図' }));
+    view.appendChild(h('p', { class: 'hint', text: '年ごとの機器展のページに載せる、チラシと地図の画像です。年を選んで、画像を足す・並べ替える・外す・説明を書く → 「この年の分を保存する」。来年度のページができたら、年を来年度に切り替えて入れてください(前の年の分は、そのまま残ります)。' }));
+    var fy = fiscalYearOf(todayJst());
+    var yearSel = sel([String(fy + 1), String(fy), String(fy - 1)], String(fy), function (y) { return y + '年度' + (y === String(fy) ? '(今年度)' : ''); });
+    yearSel.id = 'media-year';
+    var area = h('div', {});
+    var mres = h('p', { class: 'status', role: 'status' });
+    var all = [], rows = [];
+    var saveBtn = h('button', { class: 'btn', type: 'button', text: 'この年の分を保存する', onclick: save });
+    view.appendChild(field('年度', yearSel));
+    view.appendChild(area);
+    view.appendChild(h('div', { class: 'btn-row' }, [saveBtn]));
+    view.appendChild(mres);
+    function draw() {
+      area.textContent = '';
+      var y = yearSel.value;
+      area.appendChild(h('p', { class: 'hint' }, ['載せる先: ', h('a', { href: 'kikiten-' + y + '.html', target: '_blank', rel: 'noopener noreferrer', text: '高知ふくし機器展 ' + y + ' のページ' }), '(ページがまだ無い年は、ページを作ったときに出ます)']));
+      MEDIA_SLOTS.forEach(function (sl) {
+        var mine = rows.filter(function (r) { return r.slot === sl[0]; });
+        var box = h('div', { class: 'item' }, [h('h3', { text: sl[1] + '(' + mine.length + ')' })]);
+        mine.forEach(function (r) {
+          var cap = h('input', { type: 'text', maxlength: '80', value: r.caption || '', placeholder: '例: 表面 / 5階の配置図' });
+          cap.addEventListener('input', function () { r.caption = cap.value; });
+          var idx = function () { return rows.indexOf(r); };
+          var move = function (d) {   // 同じ種類の中で、前後と入れ替える
+            var same = rows.filter(function (x) { return x.slot === r.slot; }), k = same.indexOf(r), o = same[k + d];
+            if (!o) return;
+            var a = idx(), b = rows.indexOf(o); rows[a] = o; rows[b] = r; draw();
+          };
+          box.appendChild(h('div', { class: 'imgrow' }, [
+            h('div', { class: 'imgthumb' }, [h('img', { src: r.url || r.src, alt: '' })]),
+            h('div', {}, [field('説明(画像の下に出ます)', cap), r.b64 ? h('p', { class: 'hint', text: '新しく足した画像です(まだ保存していません)' }) : null,
+              h('div', { class: 'btn-row' }, [
+                h('button', { class: 'btn-sub', type: 'button', text: '↑ 前へ', onclick: function () { move(-1); } }),
+                h('button', { class: 'btn-sub', type: 'button', text: '↓ 後ろへ', onclick: function () { move(1); } }),
+                h('button', { class: 'btn-sub', type: 'button', text: '外す', onclick: function () { rows.splice(idx(), 1); draw(); } })])])
+          ]));
+        });
+        box.appendChild(dropZone('ここに画像をドラッグ、または押して選ぶ(' + sl[1].replace(/\(.*$/, '') + 'を足す)', true, function (files) {
+          mres.className = 'status'; mres.textContent = '画像を読み込んでいます…';
+          files.reduce(function (p, f) {
+            return p.then(function () { return prepMedia(f).then(function (pf) { rows.push({ slot: sl[0], b64: pf.b64, mime: pf.mime, url: 'data:' + pf.mime + ';base64,' + pf.b64, caption: '' }); }); });
+          }, Promise.resolve()).then(function () { mres.textContent = '足しました。説明を書いて「この年の分を保存する」を押してください。'; draw(); })
+            .catch(function () { mres.className = 'status ng'; mres.textContent = '画像(写真・スクリーンショット)を選んでください。PDFは、画像にしてから入れてください。'; draw(); });
+        }));
+        area.appendChild(box);
+      });
+    }
+    function pickYear() {
+      rows = all.filter(function (x) { return x.year === yearSel.value; }).map(function (x) { return { slot: x.slot, src: x.src, caption: x.caption || x.alt || '' }; });
+      draw();
+    }
+    function load() {
+      area.textContent = ''; area.appendChild(h('p', { class: 'muted', text: '読み込み中です…' }));
+      api('admin.media.list').then(function (r) {
+        if (!r || !r.ok) { area.textContent = ''; mres.className = 'status ng'; mres.textContent = errText(r); return; }
+        all = r.items || []; pickYear();
+      }).catch(function () { area.textContent = ''; mres.className = 'status ng'; mres.textContent = ERR.failed; });
+    }
+    function save() {
+      if (rows.length > 12) { mres.className = 'status ng'; mres.textContent = '1つの年に12枚までです。'; return; }
+      var items = rows.map(function (r) { return r.b64 ? { slot: r.slot, b64: r.b64, mime: r.mime, caption: r.caption, alt: r.caption } : { slot: r.slot, src: r.src, caption: r.caption, alt: r.caption }; });
+      var total = items.reduce(function (n, x) { return n + (x.b64 ? x.b64.length : 0); }, 0);
+      if (total > 12000000) { mres.className = 'status ng'; mres.textContent = '一度に送る画像が大きすぎます。2〜3枚ずつ足して、そのつど保存してください。'; return; }
+      saveBtn.disabled = true; yearSel.disabled = true; mres.className = 'status'; mres.textContent = '保存しています…(画像が多いと1分ほどかかります)';
+      api('admin.media.save', { year: yearSel.value, items: items }).then(function (r) {
+        saveBtn.disabled = false; yearSel.disabled = false;
+        if (r && r.ok) { mres.className = 'status ok'; mres.textContent = '保存しました(' + r.count + '枚)。ページへの反映は1〜2分かかります。'; load(); }
+        else { mres.className = 'status ng'; mres.textContent = errText(r); }
+      }).catch(function () { saveBtn.disabled = false; yearSel.disabled = false; mres.className = 'status ng'; mres.textContent = ERR.failed; });
+    }
+    yearSel.addEventListener('change', pickYear);
+    load();
+  }
+
   // ---- 設定
   function renderSettings() {
     view.textContent = '';
@@ -816,6 +922,7 @@
       }).catch(function () { fres.className = 'status ng'; fres.textContent = ERR.failed; });
     } })]));
     view.appendChild(fres);
+    renderMediaSettings();
     renderLineSettings();
     view.appendChild(h('h2', { text: '写真の保存の診断' }));
     view.appendChild(h('p', { class: 'hint', text: '写真を載せられないときに押してください。ドライブ(取り込み元の保存)と、サイト(GitHub)への保存を、それぞれ試して、結果を表示します。' }));
