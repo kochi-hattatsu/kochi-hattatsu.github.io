@@ -50,11 +50,11 @@
     return s;
   }
 
-  // 載せる先は、複数選べる(一般向け・メーカー向け・ボランティア向け)。initial: 「public,volunteer」のような文字。
+  // 載せる先は、複数選べる(一般向け・ボランティア向け)。initial: 「public,volunteer」のような文字。
   function targetChecks(initial) {
     var cur = String(initial || '').split(',');
     var box = h('div', { class: 'checks', role: 'group', 'aria-label': '載せる先(複数選べます)' });
-    var inputs = ['public', 'maker', 'volunteer'].map(function (k) {
+    var inputs = ['public', 'volunteer'].map(function (k) {   // メーカー向けは廃止(2026-11-05)
       var cb = h('input', { type: 'checkbox', value: k });
       cb.checked = cur.indexOf(k) >= 0;
       box.appendChild(h('label', {}, [cb, TARGET_LABEL[k]]));
@@ -800,7 +800,6 @@
       function row(label, ok, extra) { box.appendChild(h('div', { class: 'item' }, [h('p', { text: label + ': ' + (ok ? 'OK' : '未設定') + (extra ? '(' + extra + ')' : '') })])); }
       row('AIのキー(' + (r.aiProvider === 'anthropic' ? 'Claude Haiku' : 'Gemini') + ')', r.hasAiKey, '今月の使用量 ' + r.ai.used + ' / 上限 ' + r.ai.cap);
       row('サイト更新用のトークン', r.hasGithub);
-      row('メーカー向けのパスワード', r.hasMakerPw);
     }).catch(function () { say(ERR.failed); });
     renderLineSettings();
     view.appendChild(h('h2', { text: '写真の保存の診断' }));
@@ -817,17 +816,6 @@
       }).catch(function () { dres.className = 'status ng'; dres.textContent = ERR.failed; });
     } })]));
     view.appendChild(dres);
-    view.appendChild(h('h2', { text: 'メーカー向けのパスワード' }));
-    var pw = h('input', { type: 'password', autocomplete: 'new-password', maxlength: '100' });
-    var res = h('p', { class: 'status', role: 'status' });
-    view.appendChild(field('新しいパスワード(12文字以上)', pw));
-    view.appendChild(h('div', { class: 'btn-row' }, [h('button', { class: 'btn', type: 'button', text: '変更する', onclick: function () {
-      api('admin.maker.setPassword', { password: pw.value }).then(function (r) {
-        if (r && r.ok) { res.className = 'status ok'; res.textContent = '変更しました。メーカーの方へは、別の方法でお知らせください。'; pw.value = ''; }
-        else { res.className = 'status ng'; res.textContent = errText(r); }
-      });
-    } })]));
-    view.appendChild(res);
     view.appendChild(h('h2', { text: 'サイトを更新し直す' }));
     var res3 = h('p', { class: 'status', role: 'status' });
     view.appendChild(h('div', { class: 'btn-row' }, [h('button', { class: 'btn-sub', type: 'button', text: '公開データを作り直す', onclick: function () {
@@ -847,6 +835,7 @@
         ev.target.className = 'tab on'; say(''); t[1]();
       } }));
     });
+    app.appendChild(h('p', { class: 'hint', text: 'ふだんの取り込み・確認・直し・「済み」は、HP専用LINE(下のメニュー)でできます。このページは、一覧でまとめて見たいとき、写真を細かく直したいとき、名簿・設定に使います。' }));
     app.appendChild(nav); app.appendChild(msgBox); app.appendChild(view);
     renderPending();
   });
