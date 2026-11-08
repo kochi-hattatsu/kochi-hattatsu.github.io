@@ -347,7 +347,7 @@
 
   // アクセス数の集計(GoatCounter・Cookieなし)。コードが無い・関係者の端末・手元の確認では数えない
   (function () {
-    var code = "";
+    var code = "kochi-hattatsu";
     if (!code || location.protocol !== 'https:') return;
     try {
       if (location.hash === '#nocount') localStorage.setItem('hp_staff', '1');
