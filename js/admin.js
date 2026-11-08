@@ -925,6 +925,148 @@
     load();
   }
 
+  // ---- アクセス数(GoatCounter の数を、日本語で見やすく。数はGASが10分覚えている)
+  var PAGE_NAMES = { '/': 'トップ', '/index.html': 'トップ', '/about.html': '概要', '/events.html': 'イベント情報', '/gallery.html': 'フォトギャラリー',
+    '/board.html': 'みんなのお知らせ', '/links.html': 'リンク', '/makers.html': 'メーカー紹介', '/contact.html': 'お問い合わせ', '/staff.html': '関係者の方',
+    '/volunteer.html': 'ボランティアの方(ログイン)', '/volunteer-join.html': 'ボランティアスタッフの登録', '/admin.html': '管理者の方', '/edit.html': 'その場で直す',
+    '/poster2026/': 'ポスター発表', '/poster2026/index.html': 'ポスター発表', '/404.html': '(ページが見つからない)' };
+  var SIZE_NAMES = { 'Phones': 'スマホ', 'Large phones, small tablets': '大きめのスマホ・小さいタブレット', 'Tablets and small laptops': 'タブレット・小さいパソコン',
+    'Computer monitors': 'パソコン', 'Computer monitors larger than HD': '大きな画面のパソコン', '(unknown)': 'わからない' };
+  function pageName(p) {
+    var path = String(p.path || '').replace(/^\/[^\/]*\.github\.io/, '');
+    var m = /^\/kikiten-(\d{4})\.html$/.exec(path);
+    if (m) return '高知ふくし機器展 ' + m[1];
+    if (/^\/poster2026\//.test(path) && !PAGE_NAMES[path]) return 'ポスター発表(' + path.replace('/poster2026/', '') + ')';
+    return PAGE_NAMES[path] || (String(p.title || '').split(' | ')[0] || path);
+  }
+  function refName(n) {
+    n = String(n || '');
+    if (!n || n === '(no data)') return '直接(ブックマーク・LINE・QRコードなど)';
+    if (/google/i.test(n)) return 'Google検索';
+    if (/yahoo/i.test(n)) return 'Yahoo!検索';
+    if (/bing/i.test(n)) return 'Bing検索';
+    if (/kochiken-shakyo/i.test(n)) return '高知県社会福祉協議会のサイト';
+    if (/wweb\.jp/i.test(n)) return '旧ホームページ';
+    if (/facebook|fb\./i.test(n)) return 'Facebook';
+    if (/instagram/i.test(n)) return 'Instagram';
+    if (/line\.me|line/i.test(n)) return 'LINE';
+    if (/kochi-hattatsu\.github\.io/i.test(n)) return 'このサイトの中';
+    return n;
+  }
+  function placeName(n) { n = String(n || ''); return n === 'Japan' ? '日本' : (n === '(unknown)' || !n ? 'わからない' : n); }
+  function barTable(title, rows, nameFn, note) {
+    var sec = h('section', { class: 'stat-sec' }, [h('h3', { text: title })]);
+    if (note) sec.appendChild(h('p', { class: 'hint', text: note }));
+    if (!rows.length) { sec.appendChild(h('p', { class: 'muted', text: 'まだ数がありません。' })); return sec; }
+    var max = Math.max.apply(null, rows.map(function (r) { return r.count; })) || 1;
+    var ol = h('ol', { class: 'stat-bars' });
+    rows.forEach(function (r) {
+      var bar = h('span', { class: 'stat-bar' }); bar.style.width = Math.max(2, Math.round(r.count / max * 100)) + '%';
+      ol.appendChild(h('li', {}, [h('span', { class: 'stat-name', text: nameFn(r) }), h('span', { class: 'stat-track' }, [bar]), h('span', { class: 'stat-num', text: r.count + '人' })]));
+    });
+    sec.appendChild(ol);
+    return sec;
+  }
+  function renderStats() {
+    view.textContent = '';
+    view.appendChild(h('h2', { text: 'アクセス数' }));
+    view.appendChild(h('p', { class: 'hint', text: 'このサイトを見た人の数です(GoatCounter の数を、日本語に直して表示しています)。ボランティア・管理者のページにログインした端末と、「数えない」にした端末は入りません。数は10分ごとに新しくなります。' }));
+    var days = 30;
+    var pick = h('div', { class: 'btn-row' });
+    var out = h('div', {});
+    var st = h('p', { class: 'status', role: 'status' });
+    [[7, 'この1週間'], [30, 'この30日'], [90, 'この3か月']].forEach(function (d) {
+      pick.appendChild(h('button', { class: d[0] === days ? 'btn' : 'btn-sub', type: 'button', text: d[1], onclick: function (ev) {
+        Array.prototype.forEach.call(pick.children, function (b) { b.className = 'btn-sub'; }); ev.target.className = 'btn'; days = d[0]; load(false);
+      } }));
+    });
+    pick.appendChild(h('button', { class: 'btn-sub', type: 'button', text: '最新にする', onclick: function () { load(true); } }));
+    view.appendChild(pick); view.appendChild(st); view.appendChild(out);
+    function load(fresh) {
+      st.className = 'status'; st.textContent = '数を取りに行っています…(10秒ほどかかることがあります)'; out.textContent = '';
+      api('admin.stats.get', { days: days, fresh: !!fresh }).then(function (r) {
+        if (!r || !r.ok) {
+          st.className = 'status ng';
+          st.textContent = (r && r.reason === 'gc-nokey') ? 'まだ GoatCounter の鍵が入っていません。「設定」の「アクセス数の集計」で鍵を保存してください。' :
+            (r && r.reason === 'gc-key') ? 'GoatCounter に鍵を断られました。「設定」で鍵を入れ直してください。' : '数を取れませんでした。時間をおいて「最新にする」を押してください。';
+          return;
+        }
+        st.textContent = '';
+        var avg = r.daily.length ? Math.round(r.total / Math.max(1, r.daily.length) * 10) / 10 : 0;
+        var today = r.daily.length ? r.daily[r.daily.length - 1].n : 0;
+        out.appendChild(h('div', { class: 'stat-cards' }, [
+          h('div', { class: 'stat-card' }, [h('span', { text: '期間の合計' }), h('strong', { text: r.total + '人' })]),
+          h('div', { class: 'stat-card' }, [h('span', { text: '1日の平均' }), h('strong', { text: avg + '人' })]),
+          h('div', { class: 'stat-card' }, [h('span', { text: '今日' }), h('strong', { text: today + '人' })])
+        ]));
+        var dmax = Math.max.apply(null, r.daily.map(function (d) { return d.n; }).concat([1]));
+        var chart = h('div', { class: 'stat-days', role: 'img', 'aria-label': '日ごとの人数のグラフ' });
+        r.daily.forEach(function (d) {
+          var col = h('span', { class: 'stat-day', title: d.day.slice(5).replace('-', '/') + ' ' + d.n + '人' });
+          col.style.height = Math.round(d.n / dmax * 100) + '%';
+          chart.appendChild(col);
+        });
+        out.appendChild(h('section', { class: 'stat-sec' }, [h('h3', { text: '日ごとの人数' }), chart,
+          h('p', { class: 'hint', text: (r.daily.length ? r.daily[0].day.slice(5).replace('-', '/') : '') + ' 〜 今日(いちばん多い日 ' + dmax + '人)' })]));
+        out.appendChild(barTable('よく見られているページ', r.pages, pageName));
+        out.appendChild(barTable('どこから来たか', r.refs, function (x) { return refName(x.name); }, 'LINEやQRコードから開いた場合は「直接」に入ることが多いです。'));
+        out.appendChild(barTable('スマホかパソコンか', r.sizes, function (x) { return SIZE_NAMES[x.name] || x.name; }));
+        out.appendChild(barTable('見ている場所', r.locations, function (x) { return placeName(x.name); }));
+        out.appendChild(h('p', { class: 'small', text: '数えた時刻: ' + String(r.at || '').replace('T', ' ').slice(0, 16) + '。くわしい画面(英語)は https://kochi-hattatsu.goatcounter.com/ です。' }));
+      }).catch(function () { st.className = 'status ng'; st.textContent = ERR.failed; });
+    }
+    load(false);
+  }
+
+  // ---- 設定: アクセス数の集計(鍵・この端末を数えない)
+  function renderStatsSettings() {
+    view.appendChild(h('h2', { text: 'アクセス数の集計' }));
+    var st = h('p', { class: 'status', role: 'status' });
+    view.appendChild(st);
+    api('admin.stats.status').then(function (r) { if (r && r.ok) { st.className = 'status ' + (r.hasToken ? 'ok' : 'ng'); st.textContent = 'GoatCounter の鍵: ' + (r.hasToken ? 'OK(「アクセス数」のタブで見られます)' : '未設定'); } });
+    view.appendChild(h('h3', { text: '① GoatCounter の鍵を入れる(最初の1回だけ)' }));
+    view.appendChild(h('p', { class: 'hint', text: 'GoatCounter の画面の右上のメールアドレス →「API」→ 新しい鍵(New API key)を作ります。名前は「HP集計」など、できることは「統計を読む(Read statistics)」だけにチェック。できた鍵の文字列をコピーして、下に貼り付けてください。保存したあとは、画面には出ません。' }));
+    var tk = h('input', { id: 'gc-token', type: 'password', autocomplete: 'off', maxlength: '200' });
+    var tres = h('p', { class: 'status', role: 'status' });
+    view.appendChild(field('GoatCounter の鍵(APIキー)', tk));
+    view.appendChild(h('div', { class: 'btn-row' }, [h('button', { class: 'btn', type: 'button', text: '鍵を保存する', onclick: function () {
+      tres.className = 'status'; tres.textContent = 'GoatCounter に確かめています…';
+      api('admin.stats.setToken', { token: tk.value }).then(function (r) {
+        if (r && r.ok) { tres.className = 'status ok'; tres.textContent = '保存しました。「アクセス数」のタブで数が見られます。'; tk.value = ''; st.className = 'status ok'; st.textContent = 'GoatCounter の鍵: OK'; }
+        else if (r && r.reason === 'format') { tres.className = 'status ng'; tres.textContent = '鍵の形ではありません。前後の空白や、別の文字が入っていないか確かめてください。'; }
+        else if (r && r.reason === 'rejected') { tres.className = 'status ng'; tres.textContent = 'GoatCounter に断られました(コード ' + r.code + ')。鍵をコピーし直してください。保存はしていません。'; }
+        else { tres.className = 'status ng'; tres.textContent = errText(r); }
+      }).catch(function () { tres.className = 'status ng'; tres.textContent = ERR.failed; });
+    } })]));
+    view.appendChild(tres);
+
+    view.appendChild(h('h3', { text: '② 身内の端末を数えない' }));
+    view.appendChild(h('p', { class: 'hint', text: 'ボランティア・管理者のページにログインした端末は、自動で数えなくなります。ログインしない家族のスマホなどは、その端末で下のアドレスを一度開くと、数えなくなります(LINEで自分あてに送って、開いてもOK)。' }));
+    var link = 'https://kochi-hattatsu.github.io/#nocount';
+    var lres = h('p', { class: 'status', role: 'status' });
+    var linkIn = h('input', { id: 'nocount-link', type: 'text', readonly: 'readonly', value: link });
+    view.appendChild(field('数えないためのアドレス', linkIn));
+    var mine = function () { try { return localStorage.getItem('hp_staff') === '1'; } catch (e) { return false; } };
+    var now = h('p', { class: 'hint', text: 'この端末: ' + (mine() ? '数えない(身内)' : '数える') });
+    view.appendChild(h('div', { class: 'btn-row' }, [
+      h('button', { class: 'btn-sub', type: 'button', text: 'アドレスをコピーする', onclick: function () {
+        var done = function () { lres.className = 'status ok'; lres.textContent = 'コピーしました。'; };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(done, function () { linkIn.select(); lres.className = 'status'; lres.textContent = '選んだ状態にしました。長押し(右クリック)でコピーしてください。'; });
+        else { linkIn.select(); lres.className = 'status'; lres.textContent = '選んだ状態にしました。長押し(右クリック)でコピーしてください。'; }
+      } }),
+      h('button', { class: 'btn-sub', type: 'button', text: 'この端末を数えない', onclick: function () {
+        try { localStorage.setItem('hp_staff', '1'); } catch (e) { lres.className = 'status ng'; lres.textContent = 'この端末では設定できませんでした(プライベートモードなど)。'; return; }
+        now.textContent = 'この端末: 数えない(身内)'; lres.className = 'status ok'; lres.textContent = 'この端末は、これから数えません。';
+      } }),
+      h('button', { class: 'btn-sub', type: 'button', text: 'この端末を数えるに戻す', onclick: function () {
+        try { localStorage.removeItem('hp_staff'); } catch (e) { /* なにもしない */ }
+        now.textContent = 'この端末: 数える'; lres.className = 'status ok'; lres.textContent = 'この端末を、数えるに戻しました(ログインすると、また数えなくなります)。';
+      } })
+    ]));
+    view.appendChild(now);
+    view.appendChild(lres);
+  }
+
   // ---- 設定
   function renderSettings() {
     view.textContent = '';
@@ -955,6 +1097,7 @@
     renderMediaSettings();
     renderTopicSettings();
     renderLineSettings();
+    renderStatsSettings();
     view.appendChild(h('h2', { text: '写真の保存の診断' }));
     view.appendChild(h('p', { class: 'hint', text: '写真を載せられないときに押してください。ドライブ(取り込み元の保存)と、サイト(GitHub)への保存を、それぞれ試して、結果を表示します。' }));
     var dres = h('p', { class: 'status', role: 'status' });
@@ -977,7 +1120,7 @@
     view.appendChild(res3);
   }
 
-  var TABS = [['承認待ち', renderPending], ['取り込み', renderIngest], ['ページで直す', renderLive], ['公開中', renderPublished], ['お問い合わせ', renderContacts], ['名簿', renderRoster], ['設定', renderSettings]];
+  var TABS = [['承認待ち', renderPending], ['取り込み', renderIngest], ['ページで直す', renderLive], ['公開中', renderPublished], ['お問い合わせ', renderContacts], ['名簿', renderRoster], ['アクセス数', renderStats], ['設定', renderSettings]];
   document.addEventListener('member-ready', function () {
     if (!app) return;
     if (window.APP.role !== 'admin') { app.textContent = ''; return; }

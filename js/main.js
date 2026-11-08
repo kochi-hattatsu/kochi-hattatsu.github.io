@@ -345,6 +345,21 @@
     };
   }
 
+  // 紹介動画: 押したときだけ YouTube(nocookie)を読み込む
+  Array.prototype.forEach.call(document.querySelectorAll('.yt[data-yt]'), function (box) {
+    var id = box.getAttribute('data-yt'), btn = box.querySelector('.yt-play');
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id) || !btn) return;
+    btn.addEventListener('click', function () {
+      var f = document.createElement('iframe');
+      f.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1';
+      f.title = '発達ブースの紹介動画';
+      f.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; fullscreen');
+      f.setAttribute('allowfullscreen', '');
+      f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');   // YouTube は埋め込み元のサイト名が無いと再生しない(エラー153)。この枠だけ、サイト名(ページ名は含まない)を伝える
+      box.textContent = ''; box.appendChild(f);
+    });
+  });
+
   // アクセス数の集計(GoatCounter・Cookieなし)。コードが無い・関係者の端末・手元の確認では数えない
   (function () {
     var code = "kochi-hattatsu";
