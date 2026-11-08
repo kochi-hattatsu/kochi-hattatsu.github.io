@@ -801,6 +801,21 @@
       row('AIのキー(' + (r.aiProvider === 'anthropic' ? 'Claude Haiku' : 'Gemini') + ')', r.hasAiKey, '今月の使用量 ' + r.ai.used + ' / 上限 ' + r.ai.cap);
       row('サイト更新用のトークン', r.hasGithub);
     }).catch(function () { say(ERR.failed); });
+    view.appendChild(h('h2', { text: 'お知らせの本文の表示' }));
+    view.appendChild(h('p', { class: 'hint', text: 'スマホで長くならないよう、本文・写真・リンクを「くわしく見る」の中に折りたたむかどうかの基本です(短い本文は折りたたみません。折りたたむと、写真も「くわしく見る」の中に入ります)。1件ずつ変えるときは、LINEのカードの「表示」ボタンや「言葉で直す」で。' }));
+    var foldSel = sel(['fold', 'open'], 'fold', function (o) { return o === 'fold' ? '折りたたむ' : 'そのまま見せる'; });
+    foldSel.id = 'fold-default';
+    var fres = h('p', { class: 'status', role: 'status' });
+    api('admin.status').then(function (r) { if (r && r.ok && r.foldDefault) foldSel.value = r.foldDefault; });
+    view.appendChild(field('基本の表示', foldSel));
+    view.appendChild(h('div', { class: 'btn-row' }, [h('button', { class: 'btn-sub', type: 'button', text: 'この表示にする', onclick: function () {
+      fres.className = 'status'; fres.textContent = '変えています…';
+      api('admin.site.fold', { value: foldSel.value }).then(function (r) {
+        if (r && r.ok) { fres.className = 'status ok'; fres.textContent = '変えました' + (r.site === 'updated' ? '(公開ページへの反映に1〜2分)。' : '。公開データの作り直しだけ失敗しました(「サイトを更新し直す」を押してください)。'); }
+        else { fres.className = 'status ng'; fres.textContent = errText(r); }
+      }).catch(function () { fres.className = 'status ng'; fres.textContent = ERR.failed; });
+    } })]));
+    view.appendChild(fres);
     renderLineSettings();
     view.appendChild(h('h2', { text: '写真の保存の診断' }));
     view.appendChild(h('p', { class: 'hint', text: '写真を載せられないときに押してください。ドライブ(取り込み元の保存)と、サイト(GitHub)への保存を、それぞれ試して、結果を表示します。' }));

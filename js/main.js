@@ -71,7 +71,14 @@
       if (Array.isArray(items) && !box.getAttribute('data-keep')) items = items.filter(function (it) { return !isPast(it); });
       var yr = box.getAttribute('data-year');
       if (Array.isArray(items) && yr) items = items.filter(function (it) { return !it.year || String(it.year) === yr; });
-      if (!Array.isArray(items) || !items.length) { box.appendChild(el('p', 'muted', empty)); return; }
+      var tp = box.getAttribute('data-topic');   // 機器展のページの欄(開催案内/セミナー/展示・体験/そのほか)
+      if (Array.isArray(items) && tp) items = items.filter(function (it) { return tp === 'そのほか' ? ['開催案内', 'セミナー', '展示・体験'].indexOf(it.topic) < 0   /* gas/main/Config.js の KIKITEN_TOPICS と合わせる */ : it.topic === tp; });
+      if (!Array.isArray(items) || !items.length) {
+        var sec = box.closest('section');
+        if (sec && sec.hasAttribute('data-hide-empty')) { sec.hidden = true; return; }
+        if (empty) box.appendChild(el('p', 'muted', empty));
+        return;
+      }
       items.forEach(function (it) {
         var d = el('article', 'item');
         var main = el('div', 'item-main');
@@ -81,15 +88,18 @@
         main.appendChild(el('h3', null, String(it.title || '')));
         if (it.done === true) { var dn = el('p'); dn.appendChild(el('span', 'badge', '済み')); main.appendChild(dn); }
         if (it.place) main.appendChild(el('p', null, '場所: ' + String(it.place)));
-        if (it.body) main.appendChild(el('p', null, String(it.body)));
+        var more = it.fold === true ? el('details', 'item-more') : null, tgt = main;   // 折りたたむときは、本文・リンク・写真を「くわしく見る」の中に
+        if (more) { more.appendChild(el('summary', null, 'くわしく見る')); tgt = more; }
+        if (it.body) tgt.appendChild(el('p', null, String(it.body)));
         var u = safeUrl(it.url);
         if (u) {
           var p = el('p');
           var a = el('a', null, it.urlLabel ? String(it.urlLabel) : '詳しく見る');
           a.href = u; a.target = '_blank'; a.rel = 'noopener noreferrer';
-          p.appendChild(a); main.appendChild(p);
+          p.appendChild(a); tgt.appendChild(p);
         }
         var pics = picsOf(it.images);
+        if (more) { if (pics) more.appendChild(pics); main.appendChild(more); d.appendChild(main); box.appendChild(d); return; }
         if (!pics) { d.appendChild(main); box.appendChild(d); return; }
         var lay = (it.imgLayout === 'side' || it.imgLayout === 'bottom') ? it.imgLayout : 'top';
         d.className = 'item has-pics pics-' + lay;
@@ -101,6 +111,25 @@
       box.appendChild(el('p', 'muted', '読み込めませんでした。時間をおいて、もう一度お試しください。'));
     });
   }
+  // トップの機器展の案内カード(開催の31日前から、終わる日まで。GASが data/banner.json に入れる)
+  var bn = document.querySelector('[data-banner]');
+  if (bn) fetch(bn.getAttribute('data-banner'), { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : []; }).then(function (items) {
+    (Array.isArray(items) ? items : []).forEach(function (it) {
+      var KK_YEARS = [2026];   // 機器展の年別ページがある年(ビルドのときに入る)
+      var ym = /^kikiten-(\d{4})\.html$/.exec(String(it.link || ''));
+      var href = ym && KK_YEARS.indexOf(Number(ym[1])) >= 0 ? String(it.link) : 'events.html';
+      var a = el('a', 'kk-banner'); a.href = href;
+      var img = (Array.isArray(it.images) ? it.images : []).filter(function (im) { return im && /^img\/up\/[A-Za-z0-9_.-]+$/.test(String(im.src || '')); })[0];
+      if (img) { var th = el('img', 'kk-thumb'); th.src = img.src; th.alt = String(img.alt || 'チラシ'); a.appendChild(th); }
+      var tx = el('div', 'kk-text');
+      tx.appendChild(el('strong', null, String(it.title || '')));
+      var when = it.dateText ? String(it.dateText) : fmtDate(it.date);
+      if (when || it.place) tx.appendChild(el('span', 'kk-when', [when, it.place ? String(it.place) : ''].filter(Boolean).join(' / ')));
+      tx.appendChild(el('span', 'kk-go', 'セミナー・地図・チラシを見る →'));
+      a.appendChild(tx); bn.appendChild(a);
+    });
+  }).catch(function () { /* 案内カードが出せなくても、お知らせは出す */ });
+
   var lists = document.querySelectorAll('[data-src]');
   for (var i = 0; i < lists.length; i++) renderList(lists[i]);
 

@@ -300,6 +300,20 @@ main>.status:not(:empty){text-align:center;font-size:20px;padding:28px 20px;bord
 .field .checks{display:flex;flex-wrap:wrap;gap:8px}
 .field .checks label{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1.5px solid var(--field-line);border-radius:12px;background:var(--field-bg);font-weight:400;min-height:48px;margin:0;cursor:pointer}
 .field .checks input{width:22px;height:22px;margin:0;accent-color:var(--green)}
+details.item-more{margin:6px 0 0}
+.kk-banner{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;background:var(--green-l);border:2px solid var(--green);border-radius:var(--radius);padding:12px 14px;margin:0 0 14px;text-decoration:none;color:var(--ink)}
+.kk-banner:hover,.kk-banner:focus-visible{border-color:var(--orange)}
+.kk-thumb{width:84px;height:auto;max-height:120px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.kk-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.kk-text strong{font-size:1.08rem;line-height:1.4}
+.kk-when{font-size:.92rem;color:var(--muted)}
+.kk-go{margin-top:4px;font-weight:700;color:var(--green);text-decoration:underline;text-underline-offset:3px}
+details.item-more>summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;color:var(--green-d, inherit)}
+details.item-more[open]>summary{margin-bottom:4px}
+details.item-more>summary{list-style:none;text-decoration:underline;text-underline-offset:3px}
+details.item-more>summary::-webkit-details-marker{display:none}
+details.item-more>summary::before{content:'▸';margin-right:.45em;text-decoration:none;display:inline-block}
+details.item-more[open]>summary::before{content:'▾'}
 details.srcbox{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin:8px 0 14px}
 details.srcbox summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
 details.srcbox .src{white-space:pre-wrap;max-width:none;font-size:16px;line-height:1.7;max-height:300px;overflow:auto;margin:6px 0}

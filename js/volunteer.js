@@ -17,17 +17,20 @@
     if (when) d.appendChild(h('time', { text: when }));
     d.appendChild(h('h3', { text: it.title }));
     if (it.place) d.appendChild(h('p', { text: '場所: ' + it.place }));
-    if (it.summary) d.appendChild(h('p', { text: it.summary }));
+    var box = d;   // 折りたたむときは、本文・写真・リンクを「くわしく見る」の中に
+    if (it.fold === true) box = h('details', { class: 'item-more' }, [h('summary', { text: 'くわしく見る' })]);
+    if (it.summary) box.appendChild(h('p', { text: it.summary }));
     (Array.isArray(it.images) ? it.images : []).slice(0, 6).forEach(function (im) {   // 写真・資料(サイトの img/up・files/up の中のものだけ)
       var src = /^img\/up\/[A-Za-z0-9_.-]+$/.test(String(im && im.src || '')) ? String(im.src) : '';
       var pdf = /^files\/up\/[A-Za-z0-9_.-]+\.pdf$/.test(String(im && im.pdf || '')) ? String(im.pdf) : '';
-      if (src) { var a1 = h('a', { href: pdf || src, target: '_blank', rel: 'noopener noreferrer' }, [h('img', { src: src, alt: String(im.alt || ''), loading: 'lazy', style: 'max-width:100%;height:auto;border-radius:8px' })]); d.appendChild(h('p', {}, [a1])); }
-      if (pdf) d.appendChild(h('p', {}, [h('a', { href: pdf, target: '_blank', rel: 'noopener noreferrer', text: '資料(PDF)を開く' })]));
+      if (src) { var a1 = h('a', { href: pdf || src, target: '_blank', rel: 'noopener noreferrer' }, [h('img', { src: src, alt: String(im.alt || ''), loading: 'lazy', style: 'max-width:100%;height:auto;border-radius:8px' })]); box.appendChild(h('p', {}, [a1])); }
+      if (pdf) box.appendChild(h('p', {}, [h('a', { href: pdf, target: '_blank', rel: 'noopener noreferrer', text: '資料(PDF)を開く' })]));
     });
     if (it.url && /^https:\/\//.test(it.url)) {
       var a = h('a', { text: '詳しく見る', href: it.url, target: '_blank', rel: 'noopener noreferrer' });
-      d.appendChild(h('p', {}, [a]));
+      box.appendChild(h('p', {}, [a]));
     }
+    if (box !== d) d.appendChild(box);
     if (it.progress) {   // 依頼などの対応状況(管理者が書く)
       d.appendChild(h('p', {}, [h('span', { class: 'badge' + (it.progress === 'done' ? '' : ' warn'), text: ({ open: 'これから', doing: '対応中', done: '対応済み' })[it.progress] || '対応中' })].concat(it.due && it.progress !== 'done' ? [' 締切: ' + it.due] : [])));
       if (it.progressNote) d.appendChild(h('p', { text: '対応メモ: ' + it.progressNote }));
