@@ -5,6 +5,21 @@
   "endDate": "2026-11-14",
   "dateText": "令和8年11月13日(金)10時～17時、11月14日(土)10時～16時",
   "place": "高知県立ふくし交流プラザ",
+  "images": [
+   {
+    "alt": "",
+    "src": "img/up/qcff931ac5e-261108232105-1.jpg"
+   },
+   {
+    "alt": "",
+    "src": "img/up/qcff931ac5e-261108232105-2.jpg"
+   },
+   {
+    "alt": "",
+    "src": "img/up/qcff931ac5e-261108232105-3.jpg"
+   }
+  ],
+  "imgLayout": "top",
   "year": "2026",
   "link": "kikiten-2026.html"
  }
