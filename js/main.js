@@ -75,7 +75,12 @@
       if (Array.isArray(items) && mx > 0) items = items.slice(0, mx);
       var tp = box.getAttribute('data-topic');   // 機器展のページの欄(開催案内/セミナー/展示・体験/そのほか)
       if (Array.isArray(items) && tp) items = items.filter(function (it) { return tp === 'そのほか' ? ['開催案内', 'セミナー', '展示・体験'].indexOf(it.topic) < 0   /* gas/main/Config.js の KIKITEN_TOPICS と合わせる */ : it.topic === tp; });
+      if (Array.isArray(items) && tp) {   // 当日の順番に(日付→開始時刻。日付のないものは最後)
+        var key = function (it) { var m = /(\d{1,2})[:：時](\d{2})?/.exec(String(it.dateText || '').replace(/^.*?日[^\d]*/, '')); return (String(it.date || '9999-99-99')) + ' ' + (m ? ('0' + m[1]).slice(-2) + ':' + (m[2] || '00') : '99:99'); };
+        items = items.slice().sort(function (a, b) { var x = key(a), y = key(b); return x < y ? -1 : (x > y ? 1 : 0); });
+      }
       if (!Array.isArray(items) || !items.length) {
+        if (box.id === 'news-list' && document.querySelector('#kikiten-banner .kk-banner')) return;   // 案内カードがあれば、空の文は出さない
         var sec = box.closest('section');
         if (sec && sec.hasAttribute('data-hide-empty')) { sec.hidden = true; return; }
         if (empty) box.appendChild(el('p', 'muted', empty));
@@ -136,6 +141,8 @@
       if (when || it.place) tx.appendChild(el('span', 'kk-when', [when, it.place ? String(it.place) : ''].filter(Boolean).join(' / ')));
       tx.appendChild(el('span', 'kk-go', '機器展のページを見る →'));
       a.appendChild(tx); bn.appendChild(a);
+      var nl0 = document.getElementById('news-list');   // お知らせが先に「ありません」と出ていたら消す
+      if (nl0 && !nl0.querySelector('.item')) nl0.textContent = '';
     });
   }).catch(function () { /* 案内カードが出せなくても、お知らせは出す */ });
 

@@ -88,6 +88,7 @@ main>section>h2:first-child{margin-top:0}
 .hero-actions{grid-area:act;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
 .hero-actions .btn,.hero-actions .btn-sub{min-height:48px;padding:8px 10px;font-size:16px;line-height:1.35}
 @media (max-width:399px){ .hero-actions{grid-template-columns:1fr} }
+@media (max-width:399px){ .hero .hero-actions{flex-direction:column} }
 .quick{display:grid;gap:14px;margin-top:clamp(24px,4vw,32px)}
 @media (min-width:760px){ .quick{grid-template-columns:repeat(3,1fr);gap:18px} }
 .card-link{align-content:start;display:grid;grid-template-columns:1fr auto;column-gap:12px;align-items:center;text-decoration:none;color:var(--ink);background:var(--white);border:1px solid var(--line);border-top:5px solid var(--green);border-radius:14px;padding:18px 20px;min-height:44px;box-shadow:var(--shadow);transition:border-color .15s}
@@ -275,6 +276,8 @@ select,input[type=date],input[type=url]{width:100%;font:inherit;padding:10px 12p
   .hero .lead{font-size:18px;line-height:1.6}
   .hero-actions{margin-top:0}
   .hero-actions .btn,.hero-actions .btn-sub{min-height:52px;font-size:17px}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:10px}   /* 文字を大きくしている端末で入りきらなければ、2段に */
+  .hero-actions .btn,.hero-actions .btn-sub{flex:1 1 auto;width:auto;white-space:nowrap;padding:8px 14px}   /* 「発達ブースについて」を1行に */
   .hero-photo{aspect-ratio:16/5;border-width:3px;border-radius:14px}
 }
 .next-steps a:only-child{flex:0 1 320px}
