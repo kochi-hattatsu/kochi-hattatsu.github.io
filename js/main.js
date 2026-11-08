@@ -71,6 +71,8 @@
       if (Array.isArray(items) && !box.getAttribute('data-keep')) items = items.filter(function (it) { return !isPast(it); });
       var yr = box.getAttribute('data-year');
       if (Array.isArray(items) && yr) items = items.filter(function (it) { return !it.year || String(it.year) === yr; });
+      var mx = parseInt(box.getAttribute('data-max') || '0', 10);   // トップは3件まで(残りは掲示板・イベント情報へ)
+      if (Array.isArray(items) && mx > 0) items = items.slice(0, mx);
       var tp = box.getAttribute('data-topic');   // 機器展のページの欄(開催案内/セミナー/展示・体験/そのほか)
       if (Array.isArray(items) && tp) items = items.filter(function (it) { return tp === 'そのほか' ? ['開催案内', 'セミナー', '展示・体験'].indexOf(it.topic) < 0   /* gas/main/Config.js の KIKITEN_TOPICS と合わせる */ : it.topic === tp; });
       if (!Array.isArray(items) || !items.length) {
@@ -89,7 +91,14 @@
         if (it.done === true) { var dn = el('p'); dn.appendChild(el('span', 'badge', '済み')); main.appendChild(dn); }
         if (it.place) main.appendChild(el('p', null, '場所: ' + String(it.place)));
         var more = it.fold === true ? el('details', 'item-more') : null, tgt = main;   // 折りたたむときは、本文・リンク・写真を「くわしく見る」の中に
-        if (more) { more.appendChild(el('summary', null, 'くわしく見る')); tgt = more; }
+        if (more) {
+          more.appendChild(el('summary', null, 'くわしく見る')); tgt = more;
+          // 本文の頭の「・日時:…」「・場所:…」は、上の日時・場所と重なるので飛ばして、内容から見せる
+          var b0 = String(it.body || '').replace(/\s+/g, ' ').replace(/[・･]?\s*(日時|日程|場所|会場)\s*[:：][^・･。]*[。]?/g, '').replace(/^[・･\s]*(内容|概要)\s*[:：]\s*/, '').replace(/^[・･\s]+/, '').trim();
+          var cut = b0.search(/[。!?！？]/);
+          var lead = cut > 0 && cut < 70 ? b0.slice(0, cut + 1) : (b0.length > 60 ? b0.slice(0, 60) + '…' : b0);
+          if (lead) main.appendChild(el('p', 'item-lead', lead));   // 最初の一文(続きは「くわしく見る」の中)
+        }
         if (it.body) tgt.appendChild(el('p', null, String(it.body)));
         var u = safeUrl(it.url);
         if (u) {
@@ -125,7 +134,7 @@
       tx.appendChild(el('strong', null, String(it.title || '')));
       var when = it.dateText ? String(it.dateText) : fmtDate(it.date);
       if (when || it.place) tx.appendChild(el('span', 'kk-when', [when, it.place ? String(it.place) : ''].filter(Boolean).join(' / ')));
-      tx.appendChild(el('span', 'kk-go', 'セミナー・地図・チラシを見る →'));
+      tx.appendChild(el('span', 'kk-go', '機器展のページを見る →'));
       a.appendChild(tx); bn.appendChild(a);
     });
   }).catch(function () { /* 案内カードが出せなくても、お知らせは出す */ });
@@ -160,6 +169,12 @@
     var st = document.getElementById('f-status');
     var send = document.getElementById('f-send');
     if (!GAS) { send.disabled = true; st.textContent = 'ただいま準備中のため、送信できません。'; st.className = 'status'; }
+    // 選んだお返事の方法に合わせて、メールアドレス・電話番号の「必須」の印を変える
+    var mm = document.getElementById('mail-mark'), tm = document.getElementById('tel-mark');
+    function mark(elm, need, both) { if (!elm) return; elm.className = need ? 'req' : 'opt'; elm.textContent = need ? (both ? 'どちらか必須' : '必須') : '(任意)'; }
+    Array.prototype.forEach.call(form.querySelectorAll('input[name=reply]'), function (r) {
+      r.addEventListener('change', function () { var v = r.value; mark(mm, v === 'mail' || v === 'either', v === 'either'); mark(tm, v === 'tel' || v === 'either', v === 'either'); });
+    });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       st.className = 'status'; st.textContent = '';
@@ -169,7 +184,10 @@
       var mail = String(fd.get('email') || '').trim();
       if (!reply) { st.className = 'status ng'; st.textContent = '「お返事の方法」を選んでください。'; return; }
       if (!msg) { st.className = 'status ng'; st.textContent = '「お問い合わせの内容」を入力してください。'; return; }
+      var tel = String(fd.get('tel') || '').trim();
       if (reply === 'mail' && !mail) { st.className = 'status ng'; st.textContent = 'メールでのお返事を希望する場合は、メールアドレスを入力してください。'; return; }
+      if (reply === 'tel' && !tel) { st.className = 'status ng'; st.textContent = '電話でのお返事を希望する場合は、電話番号を入力してください。'; return; }
+      if (reply === 'either' && !mail && !tel) { st.className = 'status ng'; st.textContent = 'メールアドレスか電話番号の、どちらかを入力してください。'; return; }
       send.disabled = true; st.textContent = '送信しています…';
       window.callGas({ action: 'contact', name: String(fd.get('name') || ''), reply: reply, email: mail,
         tel: String(fd.get('tel') || ''), message: msg, website: String(fd.get('website') || '') })

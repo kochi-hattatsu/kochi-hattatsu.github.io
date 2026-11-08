@@ -209,7 +209,8 @@ main>section>h2:first-child{margin-top:0}
 .field{margin:22px 0;border:0;padding:0;min-width:0}
 .field label,.field legend{display:block;font-weight:700;margin-bottom:8px;padding:0}
 .opt{font-weight:400;color:var(--muted);font-size:16px}
-.req{font-size:14.5px;font-weight:700;background:var(--req-bg);color:var(--req-ink);border-radius:4px;padding:0 8px;margin-left:4px}
+.radio input[type=radio]{width:24px;height:24px;flex:0 0 auto}
+.req{font-size:16px;font-weight:700;background:var(--req-bg);color:var(--req-ink);border-radius:4px;padding:0 8px;margin-left:4px}
 input[type=text],input[type=email],input[type=tel],textarea{width:100%;font:inherit;padding:10px 14px;border:1.5px solid var(--field-line);border-radius:12px;background:var(--field-bg);color:var(--ink);min-height:52px}
 input:focus,textarea:focus,select:focus{border-color:var(--green);outline:3px solid var(--focus);outline-offset:1px}
 textarea{resize:vertical}
@@ -271,10 +272,10 @@ select,input[type=date],input[type=url]{width:100%;font:inherit;padding:10px 12p
 /* スマホ: トップの上の部分を、1画面に収まるようコンパクトに(写真は細い帯にして、ボタンを写真より先に) */
 @media (max-width:759px){
   .hero{grid-template-areas:"lead" "act" "photo";row-gap:10px;padding:16px 16px 14px;border-radius:20px}
-  .hero .lead{font-size:16px;line-height:1.65}
+  .hero .lead{font-size:18px;line-height:1.6}
   .hero-actions{margin-top:0}
-  .hero-actions .btn,.hero-actions .btn-sub{min-height:44px;font-size:15px}
-  .hero-photo{aspect-ratio:16/6;border-width:3px;border-radius:14px}
+  .hero-actions .btn,.hero-actions .btn-sub{min-height:52px;font-size:17px}
+  .hero-photo{aspect-ratio:16/5;border-width:3px;border-radius:14px}
 }
 .next-steps a:only-child{flex:0 1 320px}
 
@@ -301,13 +302,17 @@ main>.status:not(:empty){text-align:center;font-size:20px;padding:28px 20px;bord
 .field .checks label{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1.5px solid var(--field-line);border-radius:12px;background:var(--field-bg);font-weight:400;min-height:48px;margin:0;cursor:pointer}
 .field .checks input{width:22px;height:22px;margin:0;accent-color:var(--green)}
 details.item-more{margin:6px 0 0}
-.kk-banner{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;background:var(--green-l);border:2px solid var(--green);border-radius:var(--radius);padding:12px 14px;margin:0 0 14px;text-decoration:none;color:var(--ink)}
+.item-lead{margin:2px 0 0}
+.illust-cap{font-size:17px;line-height:1.7;margin:0 0 12px}
+.kk-banner{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;background:var(--green-l);border:2px solid var(--green);border-left:6px solid var(--orange);border-radius:var(--radius);padding:14px 16px;margin:0 0 16px;text-decoration:none;color:var(--ink)}
 .kk-banner:hover,.kk-banner:focus-visible{border-color:var(--orange)}
 .kk-thumb{width:84px;height:auto;max-height:120px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
 .kk-text{display:flex;flex-direction:column;gap:2px;min-width:0}
-.kk-text strong{font-size:1.08rem;line-height:1.4}
-.kk-when{font-size:.92rem;color:var(--muted)}
-.kk-go{margin-top:4px;font-weight:700;color:var(--green);text-decoration:underline;text-underline-offset:3px}
+.kk-text strong{font-size:1.25rem;line-height:1.4}
+.kk-when{font-size:1rem;color:var(--ink)}
+.kk-go{margin-top:8px;display:flex;align-items:center;justify-content:center;min-height:48px;padding:6px 14px;border-radius:999px;background:var(--green);color:var(--btn-ink);font-weight:700;text-decoration:none}
+.kk-banner:hover .kk-go,.kk-banner:focus-visible .kk-go{filter:brightness(1.08)}
+@media (max-width:420px){.kk-banner{grid-template-columns:1fr}.kk-thumb{width:100%;max-height:200px}}
 details.item-more>summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;color:var(--green-d, inherit)}
 details.item-more[open]>summary{margin-bottom:4px}
 details.item-more>summary{list-style:none;text-decoration:underline;text-underline-offset:3px}

@@ -23,12 +23,13 @@
 <main id="main" class="wrap">
 
 <h1>お問い合わせ</h1>
-<p class="lead">ご質問や、ボランティアスタッフでの参加希望など、お気軽にご連絡ください。<br>
-学生ボランティアの方からの感想やご要望も、こちらからお願いします。</p>
+<p class="lead"><strong>お子さまのことのご相談・ご質問も、こちらからどうぞ。</strong>まとまっていなくても大丈夫です。<br>
+ボランティアスタッフでの参加希望や、学生ボランティアの方の感想・ご要望もお受けしています。</p>
+<p class="hint">いただいた内容は、このサイトを管理している作業療法士が読み、<strong>1週間以内</strong>にお返事します。機器展での相談のご予約も、こちらからどうぞ(相談は無料です)。</p>
 
 <form id="contact-form" class="form" novalidate>
   <div class="field">
-    <label for="f-name">お名前 <span class="opt">(任意)</span></label>
+    <label for="f-name">お名前 <span class="opt">(任意・お名前なしでも送れます)</span></label>
     <input id="f-name" name="name" type="text" maxlength="60" autocomplete="name">
   </div>
 
@@ -41,19 +42,19 @@
   </fieldset>
 
   <div class="field">
-    <label for="f-mail">メールアドレス <span class="opt">(任意)</span></label>
+    <label for="f-mail">メールアドレス <span class="opt" id="mail-mark">(任意)</span></label>
     <input id="f-mail" name="email" type="email" maxlength="120" autocomplete="email" inputmode="email">
     <p class="hint">メールでのお返事を希望する場合は、Gmailからお送りします。迷惑メールの設定(フィルター)をご確認ください。</p>
   </div>
 
   <div class="field">
-    <label for="f-tel">電話番号 <span class="opt">(任意)</span></label>
+    <label for="f-tel">電話番号 <span class="opt" id="tel-mark">(任意)</span></label>
     <input id="f-tel" name="tel" type="tel" maxlength="20" autocomplete="tel" inputmode="tel">
   </div>
 
   <div class="field">
     <label for="f-msg">お問い合わせの内容 <span class="req">必須</span></label>
-    <textarea id="f-msg" name="message" rows="7" maxlength="2000" required></textarea>
+    <textarea id="f-msg" name="message" rows="7" maxlength="2000" required placeholder="例: 3歳の男の子です。ことばがゆっくりな気がして、相談したいです。"></textarea>
   </div>
 
   <div class="trap" aria-hidden="true">
@@ -66,7 +67,7 @@
   <button id="f-send" class="btn" type="submit">送信する</button>
 </form>
 
-<nav class="next-steps" aria-label="ほかのページ"><a class="btn" href="index.html">トップへ戻る</a></nav>
+<nav class="next-steps" aria-label="ほかのページ"><a class="btn-sub" href="index.html">トップへ戻る</a></nav>
 </main>
 <footer class="site-footer">
   <div class="wrap">
