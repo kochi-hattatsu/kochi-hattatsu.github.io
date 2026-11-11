@@ -8,7 +8,7 @@
   var ATTENDS = ['全員', '希望者のみ', 'リーダーのみ'];   // gas/main/Config.js と合わせる(2026-11-08 「全員参加」→「全員」)
   var PROGRESS_LABEL = { '': '(なし)', open: 'これから', doing: '対応中', done: '対応済み' };
   var TASK_LABEL = { open: 'これから', doing: '対応中', done: '済' };
-  var STATUS_LABEL = { active: '公開中', withdrawn: '取り下げ済み' };
+  var STATUS_LABEL = { active: '公開中', withdrawn: '取り下げ済み', archived: 'アーカイブ' };
   var ERR = {
     busy: 'ほかの操作中です。少し待ってから、もう一度お試しください。',
     'ai-cap': '今月のAIの使用量が上限に達しています。',
@@ -418,7 +418,7 @@
   function renderPublished() {
     view.textContent = '';
     view.appendChild(h('h2', { text: '公開中の内容' }));
-    view.appendChild(h('p', { class: 'hint', text: '載せたあとの修正と、取り下げができます。取り下げは、消さずに「取り下げ済み」にするので、あとで戻せます。' }));
+    view.appendChild(h('p', { class: 'hint', text: '載せたあとの修正と、取り下げができます。取り下げは、消さずに「取り下げ済み」にするので、あとで戻せます(30日たつと自動で消えます)。来年の参考に残したいけれど、どのページにも出したくないものは「アーカイブへ移す」を使うと、消えずに「アーカイブ」タブに残ります。' }));
     view.appendChild(addBox(renderPublished));
     view.appendChild(h('h3', { text: 'いま載っているもの' }));
     var list = h('div', { class: 'list' });
@@ -426,8 +426,9 @@
     api('admin.published.list').then(function (r) {
       if (!r || !r.ok) { say('読み込めませんでした。もう一度ログインしてください。'); return; }
       if (r.topics) KNOWN_TOPICS = r.topics;
-      if (!r.items.length) { list.appendChild(h('p', { class: 'muted', text: 'まだ、載せた内容はありません。' })); return; }
-      r.items.forEach(function (it) { list.appendChild(publishedCard(it)); });
+      var live = r.items.filter(function (it) { return it.status !== 'archived'; });
+      if (!live.length) { list.appendChild(h('p', { class: 'muted', text: 'まだ、載せた内容はありません。' })); return; }
+      live.forEach(function (it) { list.appendChild(publishedCard(it)); });
     }).catch(function () { say(ERR.failed); });
   }
   // 管理者が直接入れる(勉強会などの単発のお知らせ。承認待ちを通さず、そのまま載る)
@@ -520,6 +521,18 @@
       api('admin.published.withdraw', { id: it.id, restore: true }).then(function (r) { if (done(r, '公開に戻しました。')) setTimeout(function () { card.remove(); }, 1500); else restore.disabled = false; })
         .catch(function () { restore.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
     } });
+    var arArmed = false;   // アーカイブへ移す(消さない。どのページにも出ない。自動でも消えない)
+    var archive = h('button', { class: 'btn-sub', type: 'button', text: 'アーカイブへ移す', onclick: function () {
+      if (!arArmed) { arArmed = true; archive.textContent = '本当にアーカイブへ移す(もう一度押す)'; res.className = 'status'; res.textContent = 'どのページにも出なくなります。消えはせず、「アーカイブ」タブから公開に戻せます。'; setTimeout(function () { arArmed = false; archive.textContent = 'アーカイブへ移す'; }, 5000); return; }
+      archive.disabled = true;
+      api('admin.published.archive', { id: it.id }).then(function (r) { if (done(r, 'アーカイブへ移しました。')) setTimeout(function () { card.remove(); }, 1500); else archive.disabled = false; })
+        .catch(function () { archive.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
+    } });
+    var unarchive = h('button', { class: 'btn', type: 'button', text: '公開に戻す', onclick: function () {
+      unarchive.disabled = true;
+      api('admin.published.archive', { id: it.id, restore: true }).then(function (r) { if (done(r, '公開に戻しました。')) setTimeout(function () { card.remove(); }, 1500); else unarchive.disabled = false; })
+        .catch(function () { unarchive.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
+    } });
     var delArmed = false;
     var del = h('button', { class: 'btn-sub', type: 'button', text: '完全に消す', onclick: function () {
       if (!delArmed) { delArmed = true; del.textContent = '本当に消す(戻せません。もう一度押す)'; setTimeout(function () { delArmed = false; del.textContent = '完全に消す'; }, 5000); return; }
@@ -532,7 +545,7 @@
     var source = srcBox('', it.source_url, '元の資料を開く');
     [badges, dupNote, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます。あとから追加もできます)', tcq.box), field('話題(ボランティア向けのとき。一覧にないものは文字で入れられます)', topic.box),
       field('参加区分(ボランティア向けのとき)', attend), field('日付(開始日)', date), field('終了日(複数日のとき。この日を過ぎると一般向けから消えます)', endDate), field('日時の文章', dateText), field('場所', place), field('要約', summary),
-      field('リンク(https)', url), field('対応状況(依頼などのとき。ボランティア向けのページに出ます)', progress), field('対応メモ(送った内容・済んだことなど。ボランティア向けのページに出ます)', progNote), h('label', { class: 'check' }, [vtop, ' ボランティア向けページの一番上に出す(集合時間・持ち物など、まず見てほしいもの)']), active ? pick.box : null, h('div', { class: 'btn-row' }, active ? [save, withdraw] : [restore, del]), res].forEach(function (x) { if (x) card.appendChild(x); });
+      field('リンク(https)', url), field('対応状況(依頼などのとき。ボランティア向けのページに出ます)', progress), field('対応メモ(送った内容・済んだことなど。ボランティア向けのページに出ます)', progNote), h('label', { class: 'check' }, [vtop, ' ボランティア向けページの一番上に出す(集合時間・持ち物など、まず見てほしいもの)']), active ? pick.box : null, h('div', { class: 'btn-row' }, active ? [save, withdraw, archive] : (it.status === 'archived' ? [unarchive] : [restore, archive, del])), res].forEach(function (x) { if (x) card.appendChild(x); });
     return card;
   }
 
@@ -594,6 +607,7 @@
   function isExpiredIt(it) { var last = it.end_date || it.date; return !!last && last < todayJst(); }
   function pageOf(it) {   // この内容が、どのページに出るか(複数のことがある)
     var g = [];
+    if (it.status === 'archived') return [];   // アーカイブは「アーカイブ」タブだけ
     if (it.status !== 'active') return ['out'];
     var t = String(it.target || '').split(',');
     if (t.indexOf('public') >= 0) {
@@ -670,6 +684,63 @@
         chips.appendChild(h('button', { class: 'tab', type: 'button', 'data-k': g[0], text: g[1] + '(' + by[g[0]].length + ')', onclick: function () { liveGroup = g[0]; show(); } }));
       });
       show();
+    }).catch(function () { say(ERR.failed); });
+  }
+
+  // ---- アーカイブ(来年以降の参考に残す。どのページにも出ない。自動では消えない)
+  function renderArchive() {
+    view.textContent = '';
+    view.appendChild(h('h2', { text: 'アーカイブ' }));
+    view.appendChild(h('p', { class: 'hint', text: '「公開中」や「ページで直す」で「アーカイブへ移す」を押したものが、ここに残ります。一般向け・ボランティア向けのどのページにも出ません。取り下げと違って、自動では消えません。「公開に戻す」で、また載せられます。' }));
+    var find = h('input', { type: 'search', maxlength: '40', placeholder: '題名で探す', 'aria-label': '題名で探す' });
+    view.appendChild(field('探す', find));
+    var box = h('div', { class: 'list' });
+    view.appendChild(box);
+    api('admin.published.list').then(function (r) {
+      if (!r || !r.ok) { say('読み込めませんでした。もう一度ログインしてください。'); return; }
+      if (r.topics) KNOWN_TOPICS = r.topics;
+      var arch = r.items.filter(function (it) { return it.status === 'archived'; });
+      function fyOf(it) { var y = String(it.year || '').trim(); if (/^\d{4}$/.test(y)) return y; var d = String(it.date || it.published_at || '').slice(0, 4); return /^\d{4}$/.test(d) ? d : ''; }
+      function draw() {
+        box.textContent = '';
+        var q = find.value.replace(/[\s　]/g, '');
+        var shown = arch.filter(function (it) { return !q || String(it.title || '').replace(/[\s　]/g, '').indexOf(q) >= 0; });
+        if (!shown.length) { box.appendChild(h('p', { class: 'muted', text: arch.length ? '当てはまるものはありません。' : 'アーカイブは、まだありません。' })); return; }
+        var years = {}; shown.forEach(function (it) { var y = fyOf(it); (years[y] = years[y] || []).push(it); });
+        Object.keys(years).sort().reverse().forEach(function (y, i) {
+          var det = h('details', { class: 'item' }); if (i === 0 || q) det.open = true;
+          det.appendChild(h('summary', { text: (y ? y + '年度' : '年度が不明') + '(' + years[y].length + '件)' }));
+          years[y].forEach(function (it) {
+            var wrap = h('div', { class: 'livewrap' }), editor = null;
+            wrap.appendChild(previewItem(it));
+            var open = h('button', { class: 'btn-sub', type: 'button', text: '中身を見る・公開に戻す', onclick: function () {
+              if (editor) { editor.remove(); editor = null; open.textContent = '中身を見る・公開に戻す'; return; }
+              editor = publishedCard(it); wrap.appendChild(editor); open.textContent = '閉じる';
+            } });
+            wrap.appendChild(h('div', { class: 'btn-row' }, [open]));
+            det.appendChild(wrap);
+          });
+          box.appendChild(det);
+        });
+      }
+      find.addEventListener('input', draw);
+      draw();
+    }).catch(function () { say(ERR.failed); });
+  }
+
+  // ---- 公開ページの「管理」ボタンから来たとき: その1件だけを開く(#edit=番号)
+  function renderOne(id) {
+    view.textContent = '';
+    view.appendChild(h('h2', { text: 'この1件を直す' }));
+    view.appendChild(h('div', { class: 'btn-row' }, [h('button', { class: 'btn-sub', type: 'button', text: 'ほかのものも見る(一覧へ)', onclick: function () { try { history.replaceState(null, '', location.pathname); } catch (e) { /* そのまま */ } window.__selectTab(2); } })]));
+    var box = h('div', { class: 'list' }); view.appendChild(box);
+    api('admin.published.list').then(function (r) {
+      if (!r || !r.ok) { say('読み込めませんでした。もう一度ログインしてください。'); return; }
+      if (r.topics) KNOWN_TOPICS = r.topics;
+      var it = r.items.filter(function (x) { return x.id === id; })[0];
+      if (!it) { box.appendChild(h('p', { class: 'muted', text: 'この内容は見つかりませんでした(すでに消えたか、取り下げて30日たった可能性があります)。' })); return; }
+      box.appendChild(previewItem(it));
+      box.appendChild(publishedCard(it, function () { renderOne(id); }));
     }).catch(function () { say(ERR.failed); });
   }
 
@@ -1195,19 +1266,22 @@
     view.appendChild(res3);
   }
 
-  var TABS = [['承認待ち', renderPending], ['取り込み', renderIngest], ['ページで直す', renderLive], ['公開中', renderPublished], ['お問い合わせ', renderContacts], ['名簿', renderRoster], ['アクセス数', renderStats], ['設定', renderSettings]];
+  var TABS = [['承認待ち', renderPending], ['取り込み', renderIngest], ['ページで直す', renderLive], ['公開中', renderPublished], ['アーカイブ', renderArchive], ['お問い合わせ', renderContacts], ['名簿', renderRoster], ['アクセス数', renderStats], ['設定', renderSettings]];
   document.addEventListener('member-ready', function () {
     if (!app) return;
     if (window.APP.role !== 'admin') { app.textContent = ''; return; }
     var nav = h('div', { class: 'tabs', role: 'tablist' });
+    function selectTab(i) {
+      Array.prototype.forEach.call(nav.children, function (b, k) { b.className = 'tab' + (k === i ? ' on' : ''); });
+      say(''); TABS[i][1]();
+    }
+    window.__selectTab = selectTab;
     TABS.forEach(function (t, i) {
-      nav.appendChild(h('button', { class: 'tab' + (i === 0 ? ' on' : ''), type: 'button', role: 'tab', text: t[0], onclick: function (ev) {
-        Array.prototype.forEach.call(nav.children, function (b) { b.className = 'tab'; });
-        ev.target.className = 'tab on'; say(''); t[1]();
-      } }));
+      nav.appendChild(h('button', { class: 'tab' + (i === 0 ? ' on' : ''), type: 'button', role: 'tab', text: t[0], onclick: function () { selectTab(i); } }));
     });
     app.appendChild(h('p', { class: 'hint', text: 'ふだんの取り込み・確認・直し・「済み」は、HP専用LINE(下のメニュー)でできます。このページは、一覧でまとめて見たいとき、写真を細かく直したいとき、名簿・設定に使います。' }));
     app.appendChild(nav); app.appendChild(msgBox); app.appendChild(view);
-    renderPending();
+    var m = /^#edit=([A-Za-z0-9_-]{1,40})$/.exec(location.hash || '');   // 公開ページの「管理」ボタンから来たとき
+    if (m) { Array.prototype.forEach.call(nav.children, function (b) { b.className = 'tab'; }); renderOne(m[1]); } else renderPending();
   });
 })();

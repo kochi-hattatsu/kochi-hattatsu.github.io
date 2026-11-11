@@ -423,6 +423,8 @@ details.item-more>summary:hover{background:var(--green-l)}
 details.item-more>summary::-webkit-details-marker{display:none}
 details.item-more>summary::before{content:'▸';margin-right:.45em;text-decoration:none;display:inline-block}
 details.item-more[open]>summary::before{content:'▾'}
+.admin-link{font-size:14px;margin:10px 0 0}.admin-link a{color:var(--muted,#555)}
+details.admin-bar{border-left:6px solid var(--orange)}
 details.srcbox{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin:8px 0 14px}
 details.srcbox summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
 details.srcbox .src{white-space:pre-wrap;max-width:none;font-size:16px;line-height:1.7;max-height:300px;overflow:auto;margin:6px 0}

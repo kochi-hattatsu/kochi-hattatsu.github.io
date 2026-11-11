@@ -10,6 +10,89 @@
     return e;
   }
   var app = document.getElementById('app');
+  // ---- 管理者だけに出る「この1件を直す」(ボランティアページを見たまま、直す・アーカイブ・取り下げ)
+  // 管理者でログインしているときだけ動く。データは admin.published.list(管理者のみ)から取り、操作はすべてGAS側で管理者かどうか確かめる。
+  var ADMIN = {}, reloadFeed = function () {};
+  var A_KINDS = ['お知らせ', 'イベント', '単発イベント', '機器展の内容', 'タスク', 'その他'];
+  var A_ATTENDS = ['全員', '希望者のみ', 'リーダーのみ'];   // gas/main/Config.js と合わせる
+  var A_PROGRESS = { '': '(なし)', open: 'これから', doing: '対応中', done: '対応済み' };
+  var A_ERR = { notfound: 'この内容は、いま公開していません(すでに取り下げたか、動かしたあとです)。', busy: 'ほかの操作中です。少し待ってから、もう一度お試しください。', target: '載せる先を1つ以上選んでください。', title: '見出しを入れてください。' };
+  var seq = 0;
+  function aField(label, input) { var id = 'ae' + (++seq); input.id = id; return h('div', { class: 'field' }, [h('label', { 'for': id, text: label }), input]); }
+  function aInp(type, value, max) { var e = h('input', { type: type, maxlength: String(max || 200) }); e.value = value || ''; return e; }
+  function aSel(options, value, labelFn) {
+    var e = h('select');
+    options.forEach(function (o) { var op = h('option', { value: o, text: labelFn ? labelFn(o) : (o || '(指定なし)') }); if (o === value) op.selected = true; e.appendChild(op); });
+    return e;
+  }
+  function aCall(action, data) {
+    var body = { action: action, idToken: window.APP.cred };
+    Object.keys(data || {}).forEach(function (k) { body[k] = data[k]; });
+    return window.callGas(body);
+  }
+  function aErr(r) { return A_ERR[r && r.reason] || 'うまくいきませんでした。ログインから1時間たっているときは、ページを開き直してログインし直してください。'; }
+  function adminBar(it) {
+    var a = window.APP && window.APP.role === 'admin' ? ADMIN[it.id] : null;
+    if (!a) return null;
+    var det = h('details', { class: 'srcbox admin-bar' }, [h('summary', { text: '管理者: この1件を直す・アーカイブ・取り下げ' })]);
+    var built = false;
+    det.addEventListener('toggle', function () { if (det.open && !built) { built = true; build(); } });
+    function build() {
+      var res = h('p', { class: 'status', role: 'status' });
+      function say(t, ok) { res.className = 'status' + (ok === true ? ' ok' : (ok === false ? ' ng' : '')); res.textContent = t; }
+      var title = aInp('text', a.title, 80), kind = aSel(A_KINDS, a.kind, function (o) { return o; });
+      var tg = String(a.target || '').split(',');
+      var tPub = h('input', { type: 'checkbox' }), tVol = h('input', { type: 'checkbox' }); tPub.checked = tg.indexOf('public') >= 0; tVol.checked = tg.indexOf('volunteer') >= 0;
+      var topic = aInp('text', a.topic, 20), att = aSel([''].concat(A_ATTENDS), a.attendance || '');
+      var date = aInp('date', /^\d{4}-\d{2}-\d{2}$/.test(a.date) ? a.date : ''), endDate = aInp('date', /^\d{4}-\d{2}-\d{2}$/.test(a.end_date) ? a.end_date : '');
+      var dateText = aInp('text', a.date_text, 60), place = aInp('text', a.place, 80), url = aInp('url', a.url, 300);
+      var summary = h('textarea', { rows: '5', maxlength: '400' }); summary.value = a.summary || '';
+      var prog = aSel(['', 'open', 'doing', 'done'], a.progress || '', function (o) { return A_PROGRESS[o]; });
+      var note = h('textarea', { rows: '2', maxlength: '300' }); note.value = a.progress_note || '';
+      var vtop = h('input', { type: 'checkbox' }); vtop.checked = a.vtop === true;
+      var btns = [];
+      function lock(b) { btns.forEach(function (x) { x.disabled = b; }); }
+      function after(r, okText) {
+        if (r && r.ok) { say(okText + (r.site && r.site !== 'updated' ? '(一般向けのページの更新だけ失敗しました。管理ページの「設定」から作り直してください)' : ''), true); setTimeout(reloadFeed, 1200); return true; }
+        lock(false); say(aErr(r), false); return false;
+      }
+      function fail() { lock(false); say('通信がうまくいきませんでした。もう一度押してください。', false); }
+      var save = h('button', { class: 'btn', type: 'button', text: '修正を保存', onclick: function () {
+        var targets = (tPub.checked ? ['public'] : []).concat(tVol.checked ? ['volunteer'] : []);
+        if (!targets.length) { say('載せる先を1つ以上選んでください。', false); return; }
+        lock(true); say('保存しています…');
+        aCall('admin.published.update', { id: it.id, edits: { title: title.value, kind: kind.value, targets: targets, topic: topic.value, attendance: att.value, date: date.value, endDate: endDate.value,
+          dateText: dateText.value, place: place.value, summary: summary.value, url: url.value, progress: prog.value, progressNote: note.value, vtop: vtop.checked } })
+          .then(function (r) { after(r, '保存しました。'); }).catch(fail);
+      } });
+      function twoStep(label, sure, hint, run) {
+        var armed = false, b = h('button', { class: 'btn-sub', type: 'button', text: label, onclick: function () {
+          if (!armed) { armed = true; b.textContent = sure; say(hint); setTimeout(function () { armed = false; b.textContent = label; }, 5000); return; }
+          lock(true); run();
+        } });
+        return b;
+      }
+      var arch = twoStep('アーカイブへ移す', '本当にアーカイブへ移す(もう一度押す)', 'どのページにも出なくなります。消えはせず、管理ページの「アーカイブ」から公開に戻せます。', function () {
+        aCall('admin.published.archive', { id: it.id }).then(function (r) { after(r, 'アーカイブへ移しました。'); }).catch(fail);
+      });
+      var wd = twoStep('取り下げる', '本当に取り下げる(もう一度押す)', 'ページから消えます。管理ページの「公開中」から戻せます(30日たつと自動で消えます)。', function () {
+        aCall('admin.published.withdraw', { id: it.id }).then(function (r) { after(r, '取り下げました。'); }).catch(fail);
+      });
+      btns = [save, arch, wd];
+      var photo = h('p', {}, [h('a', { href: 'admin.html#edit=' + encodeURIComponent(it.id), target: '_blank', rel: 'noopener noreferrer', text: '写真・資料を足す・外すときは、管理ページで開く(ログインし直しが要ります)' })]);
+      [h('p', { class: 'hint', text: '管理者にだけ出ています。ほかの方には見えません。保存すると、このページも自動で読み直します。' }),
+        aField('見出し', title), aField('種類', kind),
+        h('div', { class: 'field' }, [h('label', { text: '載せる先' }), h('div', { class: 'checks', role: 'group', 'aria-label': '載せる先(複数選べます)' }, [h('label', {}, [tPub, '一般向け(誰でも見られる)']), h('label', {}, [tVol, 'ボランティア向け'])])]),
+        aField('話題(ボランティア向けのとき)', topic), aField('参加区分(ボランティア向けのとき)', att),
+        aField('日付(開始日)', date), aField('終了日(複数日のとき。過ぎると一般向けから消えます)', endDate), aField('日時の文章', dateText), aField('場所', place),
+        aField('要約', summary), aField('リンク(https)', url),
+        aField('対応状況(ボランティア向けのページに出ます)', prog), aField('対応メモ', note),
+        h('label', { class: 'check' }, [vtop, ' ボランティア向けページの一番上に出す(集合時間・持ち物など)']),
+        photo, h('div', { class: 'btn-row' }, [save, arch, wd]), res].forEach(function (x) { det.appendChild(x); });
+    }
+    return det;
+  }
+
   function card(it) {
     var d = h('article', { class: 'item' });
     if (it.attendance) d.appendChild(h('p', {}, [h('span', { class: 'badge', text: it.attendance })]));   // 参加区分(全員/希望者のみ/リーダーのみ)
@@ -35,6 +118,7 @@
       d.appendChild(h('p', {}, [h('span', { class: 'badge' + (it.progress === 'done' ? '' : ' warn'), text: ({ open: 'これから', doing: '対応中', done: '対応済み' })[it.progress] || '対応中' })].concat(it.due && it.progress !== 'done' ? [' 締切: ' + it.due] : [])));
       if (it.progressNote) d.appendChild(h('p', { text: '対応メモ: ' + it.progressNote }));
     }
+    var ab = adminBar(it); if (ab) d.appendChild(ab);
     return d;
   }
   function taskCard(t) {
@@ -81,10 +165,16 @@
     }
     return sec;
   }
-  document.addEventListener('member-ready', function () {
+  function loadFeed() {
     if (!app) return;
+    var keepY = window.pageYOffset || 0;   // 直したあとの読み直しで、見ていた場所に戻す
     app.textContent = '読み込み中です…';
-    window.callGas({ action: 'volunteer.feed', idToken: window.APP.cred }).then(function (r) {
+    var isAdmin = window.APP && window.APP.role === 'admin';
+    var adminP = isAdmin ? aCall('admin.published.list').catch(function () { return null; }) : Promise.resolve(null);   // 管理用の項目(管理者のみ)。取れなくても、ふだんの表示は出す
+    Promise.all([window.callGas({ action: 'volunteer.feed', idToken: window.APP.cred }), adminP]).then(function (both) {
+      var r = both[0];
+      ADMIN = {};
+      if (both[1] && both[1].ok && Array.isArray(both[1].items)) both[1].items.forEach(function (x) { if (x.status === 'active') ADMIN[x.id] = x; });
       app.textContent = '';
       if (!r || !r.ok) { app.appendChild(h('p', { class: 'status ng', text: '読み込めませんでした。もう一度ログインしてください。' })); return; }
       // 一番上に送ったお知らせ(集合時間・持ち物など)。ページのいちばん上に出し、下の一覧には重ねて出さない
@@ -161,6 +251,9 @@
       if (!any && !on && !(r.tasks && r.tasks.length) && !tops.length) listArea.appendChild(h('p', { class: 'muted', text: 'いま、ご案内するものはありません。' }));
       }
       draw();
+      if (keepY) window.scrollTo(0, keepY);
     }).catch(function () { app.textContent = ''; app.appendChild(h('p', { class: 'status ng', text: '読み込めませんでした。時間をおいてお試しください。' })); });
-  });
+  }
+  reloadFeed = loadFeed;
+  document.addEventListener('member-ready', loadFeed);
 })();

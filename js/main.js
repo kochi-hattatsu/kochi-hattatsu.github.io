@@ -60,6 +60,14 @@
   }
 
   // データファイル(JSON)の一覧表示。文字は textContent だけで入れる(HTMLとして解釈しない)
+  // 管理者の端末(印 hp_admin)だけ、各お知らせの下に小さな「管理」リンクを出す。押すと管理ページでその1件が開く(ログインは管理ページで)
+  function adminLink(main, it) {
+    try { if (localStorage.getItem('hp_admin') !== '1') return; } catch (e) { return; }
+    if (!it || !/^[A-Za-z0-9_-]{1,40}$/.test(String(it.id || ''))) return;
+    var p = el('p', 'admin-link'), a = el('a', null, '管理者: この1件を直す・アーカイブ');
+    a.href = 'admin.html#edit=' + encodeURIComponent(it.id); a.rel = 'noopener noreferrer';
+    p.appendChild(a); main.appendChild(p);
+  }
   function renderList(box) {
     var src = box.getAttribute('data-src');
     var empty = box.getAttribute('data-empty') || '';
@@ -115,6 +123,7 @@
           a.href = u; a.target = '_blank'; a.rel = 'noopener noreferrer';
           p.appendChild(a); tgt.appendChild(p);
         }
+        adminLink(main, it);
         var pics = picsOf(it.images);
         if (more) { if (pics) more.appendChild(pics); main.appendChild(more); d.appendChild(main); box.appendChild(d); return; }
         if (!pics) { d.appendChild(main); box.appendChild(d); return; }
@@ -340,6 +349,7 @@
         document.getElementById('member-area').hidden = false;
         window.APP = { cred: resp.credential, role: j.role };   // ログイン情報は、このページの中(メモリ)だけに置く。保存しない
         try { localStorage.setItem('hp_staff', '1'); } catch (e) {}   // この端末は、以後アクセス数に数えない(関係者)
+        try { if (j.role === 'admin') localStorage.setItem('hp_admin', '1'); } catch (e) {}   // 管理者の端末だけ、公開ページに「管理」リンクを出す印(あっても管理者のログインがなければ何も直せない)
         document.dispatchEvent(new Event('member-ready'));
       }).catch(function () { authSt.className = 'status ng'; authSt.textContent = '確認できませんでした。時間をおいて、もう一度お試しください。'; });
     };
