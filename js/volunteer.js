@@ -87,6 +87,13 @@
     window.callGas({ action: 'volunteer.feed', idToken: window.APP.cred }).then(function (r) {
       app.textContent = '';
       if (!r || !r.ok) { app.appendChild(h('p', { class: 'status ng', text: '読み込めませんでした。もう一度ログインしてください。' })); return; }
+      // 一番上に送ったお知らせ(集合時間・持ち物など)。ページのいちばん上に出し、下の一覧には重ねて出さない
+      var tops = (r.items || []).filter(function (it) { return it.vtop === true; });
+      if (tops.length) {
+        var tl0 = h('div', { class: 'list' });
+        tops.forEach(function (it) { var c = card(it); c.classList.add('item-top'); tl0.appendChild(c); });
+        app.appendChild(h('section', { class: 'top-notes' }, [h('h2', { text: 'まず見てほしいお知らせ' }), tl0]));
+      }
       var mbox = null;
       try { mbox = membersBox(r.members); } catch (e) { mbox = null; }   // 表が作れなくても、お知らせは出す
       if (mbox) app.appendChild(mbox);
@@ -102,7 +109,7 @@
         app.appendChild(dd);
       }
       // 絞り込み(種類・話題・参加区分)。選べるのは、いま使われているものだけ。話題・参加区分は「指定なし」でも選べる
-      var NONE = '__none__', items0 = (r.items || []).map(function (it) { if (it.attendance === '全員参加') it.attendance = '全員'; return it; });
+      var NONE = '__none__', items0 = (r.items || []).filter(function (it) { return it.vtop !== true; }).map(function (it) { if (it.attendance === '全員参加') it.attendance = '全員'; return it; });
       function opts(get, withNone) {
         var vals = [], none = false;
         items0.forEach(function (it) { var v = get(it); if (!v) none = true; else if (vals.indexOf(v) < 0) vals.push(v); });
@@ -151,7 +158,7 @@
         listArea.appendChild(l);
       });
       if (!any && on) listArea.appendChild(h('p', { class: 'muted', text: '当てはまるお知らせはありません。' }));
-      if (!any && !on && !(r.tasks && r.tasks.length)) listArea.appendChild(h('p', { class: 'muted', text: 'いま、ご案内するものはありません。' }));
+      if (!any && !on && !(r.tasks && r.tasks.length) && !tops.length) listArea.appendChild(h('p', { class: 'muted', text: 'いま、ご案内するものはありません。' }));
       }
       draw();
     }).catch(function () { app.textContent = ''; app.appendChild(h('p', { class: 'status ng', text: '読み込めませんでした。時間をおいてお試しください。' })); });

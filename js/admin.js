@@ -481,12 +481,13 @@
     var url = h('input', { type: 'url', maxlength: '300', value: it.url || '' });
     var progress = sel(['', 'open', 'doing', 'done'], it.progress || '', function (o) { return PROGRESS_LABEL[o]; });
     var progNote = h('textarea', { rows: '2', maxlength: '300', placeholder: '例: 11/5 県社協へ○○を送りました' }); progNote.value = it.progress_note || '';
+    var vtop = h('input', { type: 'checkbox' }); vtop.checked = it.vtop === true;   // ボランティア向けページの一番上に出す
     var res = h('p', { class: 'status', role: 'status' });
     var badges = h('p', {}, [h('span', { class: 'badge' + (active ? '' : ' warn'), text: STATUS_LABEL[it.status] || it.status }),
       h('span', { class: 'badge', text: targetsText(it.target) || it.target })]);
     var pick = imgPicker(it.source_url, it.images, it.img_layout);
     var dupNote = it.dup_title ? h('p', { class: 'hint' }, [h('span', { class: 'badge warn', text: '重複かも' }), ' 近い内容のものがほかにもあります: 「' + it.dup_title + '」。同じ内容なら、どちらかを取り下げてください。']) : null;
-    var inputs = [title, kind, attend, date, endDate, dateText, place, summary, url, progress, progNote].concat(topic.inputs).concat([].slice.call(tcq.box.querySelectorAll('input')));
+    var inputs = [title, kind, attend, date, endDate, dateText, place, summary, url, progress, progNote, vtop].concat(topic.inputs).concat([].slice.call(tcq.box.querySelectorAll('input')));
     if (!active) inputs.forEach(function (x) { x.disabled = true; });
     function done(r, okText) {
       if (r && r.ok) {
@@ -503,7 +504,7 @@
       if (!imgCheck(pk, res)) return;
       save.disabled = true; res.className = 'status'; res.textContent = '保存しています…(写真があると少し時間がかかります)';
       api('admin.published.update', { id: it.id, images: pk.images, imgOk: pk.imgOk, edits: { title: title.value, kind: kind.value, targets: tcq.get(), topic: topic.get(), attendance: attend.value,
-        date: date.value, endDate: endDate.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value, imgLayout: pk.imgLayout, progress: progress.value, progressNote: progNote.value } }).then(function (r) {
+        date: date.value, endDate: endDate.value, dateText: dateText.value, place: place.value, summary: summary.value, url: url.value, imgLayout: pk.imgLayout, progress: progress.value, progressNote: progNote.value, vtop: vtop.checked } }).then(function (r) {
         save.disabled = false; done(r, '保存しました。');
       }).catch(function () { save.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
     } });
@@ -531,7 +532,7 @@
     var source = srcBox('', it.source_url, '元の資料を開く');
     [badges, dupNote, source, field('見出し', title), field('種類', kind), field('載せる先(複数選べます。あとから追加もできます)', tcq.box), field('話題(ボランティア向けのとき。一覧にないものは文字で入れられます)', topic.box),
       field('参加区分(ボランティア向けのとき)', attend), field('日付(開始日)', date), field('終了日(複数日のとき。この日を過ぎると一般向けから消えます)', endDate), field('日時の文章', dateText), field('場所', place), field('要約', summary),
-      field('リンク(https)', url), field('対応状況(依頼などのとき。ボランティア向けのページに出ます)', progress), field('対応メモ(送った内容・済んだことなど。ボランティア向けのページに出ます)', progNote), active ? pick.box : null, h('div', { class: 'btn-row' }, active ? [save, withdraw] : [restore, del]), res].forEach(function (x) { if (x) card.appendChild(x); });
+      field('リンク(https)', url), field('対応状況(依頼などのとき。ボランティア向けのページに出ます)', progress), field('対応メモ(送った内容・済んだことなど。ボランティア向けのページに出ます)', progNote), h('label', { class: 'check' }, [vtop, ' ボランティア向けページの一番上に出す(集合時間・持ち物など、まず見てほしいもの)']), active ? pick.box : null, h('div', { class: 'btn-row' }, active ? [save, withdraw] : [restore, del]), res].forEach(function (x) { if (x) card.appendChild(x); });
     return card;
   }
 

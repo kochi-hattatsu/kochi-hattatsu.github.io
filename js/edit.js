@@ -70,6 +70,7 @@
       return o === 'fold' ? '本文・写真を「くわしく見る」に折りたたむ' : (o === 'open' ? 'そのまま見せる' : '設定の基本に合わせる(いまは' + (item.foldDefault === 'open' ? 'そのまま見せる' : '折りたたむ') + ')');
     });
     var pinBox = h('input', { type: 'checkbox' }); pinBox.checked = item.pin === true;
+    var vtopBox = h('input', { type: 'checkbox' }); vtopBox.checked = item.vtop === true;   // ボランティア向けページの一番上に出す
     var progress = sel(['', 'open', 'doing', 'done'], item.progress || '', function (o) { return PROGRESS_LABEL[o]; });
     var progNote = h('textarea', { rows: '2', maxlength: '300' }); progNote.value = item.progressNote || '';
 
@@ -127,7 +128,7 @@
       save.disabled = true; say(res, '保存しています…');
       call({ action: 'edit.save', session: session, imgOk: okBox.checked, images: images,
         edits: { title: title.value, kind: kind.value, targets: targets, date: date.value, endDate: endDate.value, dateText: dateText.value, place: place.value,
-                 summary: summary.value, url: url.value, imgLayout: layout.value, fold: fold.value, pin: pinBox.checked, progress: progress.value, progressNote: progNote.value } }).then(function (r) {
+                 summary: summary.value, url: url.value, imgLayout: layout.value, fold: fold.value, pin: pinBox.checked, vtop: vtopBox.checked, progress: progress.value, progressNote: progNote.value } }).then(function (r) {
         save.disabled = false;
         if (r && r.ok) {
           item = r.item || item; added = []; keep = item.images.map(function (im) { var c = h('input', { type: 'checkbox' }); c.checked = true; return { im: im, c: c }; }); okBox.checked = false; drawPics();
@@ -152,6 +153,7 @@
      field('場所', place), field('内容', summary), field('リンク(https から始まるもの)', url),
      field('表示(スマホで長くなるときは折りたたむ)', fold),
      h('label', { class: 'check' }, [pinBox, ' トップのお知らせの上に固定する(大事なお知らせだけ)']),
+     h('label', { class: 'check' }, [vtopBox, ' ボランティア向けページの一番上に出す(集合時間・持ち物など、まず見てほしいもの)']),
      field('やることの状況(ボランティア向けのページに出ます)', progress), field('対応メモ', progNote),
      h('h2', { text: '写真・資料' }), picBox, field('写真・PDFを足す(6つまで・1つ4MBまで)', fileIn), picMsg, field('並べ方', layout),
      h('label', { class: 'check' }, [okBox, ' 新しく足す写真の、写っている人・個人情報を確かめました(足した写真は、あとで外しても、サイトの記録には残ります)']),
