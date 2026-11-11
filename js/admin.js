@@ -895,6 +895,76 @@
     load();
   }
 
+  // ---- 設定: 当日の参加メンバー(ボランティア向けページのいちばん上の表。名前が入るので、ログインした人にだけ見える)
+  function renderMemberSettings() {
+    view.appendChild(h('h2', { text: '当日の参加メンバー' }));
+    view.appendChild(h('p', { class: 'hint', text: 'ボランティア向けページのいちばん上に出る表です(ログインした人だけが見られます)。直したら、下の「この内容で保存する」を押してください。上から順に並びます。全員を外して保存すると、表は出なくなります。' }));
+    var STATE = [['', 'まだ聞いていない'], ['yes', '○ 参加'], ['maybe', '△ 未定'], ['no', '− 不参加']];
+    var area = h('div', { class: 'list' }), res = h('p', { class: 'status', role: 'status' });
+    var days = [], rows = [], max = 40;
+    var asOf = h('input', { type: 'date' });   // 何日時点の回答か(表の上に「○月○日 時点」と出る)
+    view.appendChild(field('何日時点の回答か(参加表・メールの日付)', asOf));
+    var saveBtn = h('button', { class: 'btn', type: 'button', text: 'この内容で保存する', onclick: save });
+    var addBtn = h('button', { class: 'btn-sub', type: 'button', text: '＋ メンバーを足す', onclick: function () {
+      if (rows.length >= max) { res.className = 'status ng'; res.textContent = max + '人までです。'; return; }
+      rows.push({ name: '', org: '', s: [], note: '' }); draw();
+      var ins = area.querySelectorAll('input.m-in-name'); if (ins.length) ins[ins.length - 1].focus();
+    } });
+    view.appendChild(area);
+    view.appendChild(h('div', { class: 'btn-row' }, [addBtn, saveBtn]));
+    view.appendChild(res);
+    function draw() {
+      area.textContent = '';
+      if (!rows.length) area.appendChild(h('p', { class: 'muted', text: 'まだ誰も入っていません。「＋ メンバーを足す」から入れてください。' }));
+      rows.forEach(function (r, i) {
+        var name = h('input', { type: 'text', class: 'm-in-name', maxlength: '40', value: r.name || '', autocomplete: 'off' });
+        name.addEventListener('input', function () { r.name = name.value; });
+        var org = h('input', { type: 'text', maxlength: '60', value: r.org || '', autocomplete: 'off' });
+        org.addEventListener('input', function () { r.org = org.value; });
+        var note = h('input', { type: 'text', maxlength: '120', value: r.note || '', autocomplete: 'off' });
+        note.addEventListener('input', function () { r.note = note.value; });
+        var slots = h('div', { class: 'slots' });
+        days.forEach(function (d, di) {
+          ['午前', '午後'].forEach(function (half, hi) {
+            var k = di * 2 + hi, s = h('select');
+            STATE.forEach(function (o) { var op = h('option', { value: o[0], text: o[1] }); if ((r.s[k] || '') === o[0]) op.selected = true; s.appendChild(op); });
+            s.addEventListener('change', function () { r.s[k] = s.value; });
+            slots.appendChild(h('label', {}, [h('span', { text: d[1] + ' ' + half }), s]));
+          });
+        });
+        var move = function (dlt) { var o = rows[i + dlt]; if (!o) return; rows[i + dlt] = r; rows[i] = o; draw(); };
+        area.appendChild(h('div', { class: 'item member-edit' }, [
+          field('名前(' + (i + 1) + '人目)', name), field('所属(空でもよい)', org), slots, field('ひとこと(空でもよい)', note),
+          h('div', { class: 'btn-row' }, [
+            h('button', { class: 'btn-sub', type: 'button', text: '↑ 前へ', onclick: function () { move(-1); } }),
+            h('button', { class: 'btn-sub', type: 'button', text: '↓ 後ろへ', onclick: function () { move(1); } }),
+            h('button', { class: 'btn-sub', type: 'button', text: '外す', onclick: function () { rows.splice(i, 1); draw(); } })])
+        ]));
+      });
+    }
+    function load() {
+      area.textContent = ''; area.appendChild(h('p', { class: 'muted', text: '読み込み中です…' }));
+      api('admin.members.list').then(function (r) {
+        if (!r || !r.ok) { area.textContent = ''; res.className = 'status ng'; res.textContent = errText(r); return; }
+        days = r.days || []; max = r.max || 40;
+        asOf.value = r.asOf || todayJst();
+        rows = (r.rows || []).map(function (x) { return { name: x.name || '', org: x.org || '', s: (x.s || []).slice(), note: x.note || '' }; });
+        draw();
+      }).catch(function () { area.textContent = ''; res.className = 'status ng'; res.textContent = ERR.failed; });
+    }
+    function save() {
+      if (!days.length) return;   // 読み込めていないときは、空で上書きしない
+      if (rows.some(function (r) { return !String(r.name || '').trim(); })) { res.className = 'status ng'; res.textContent = '名前が空の人がいます。名前を入れるか、「外す」を押してください。'; return; }
+      saveBtn.disabled = true; res.className = 'status'; res.textContent = '保存しています…';
+      api('admin.members.save', { items: rows, asOf: asOf.value }).then(function (r) {
+        saveBtn.disabled = false;
+        if (r && r.ok) { res.className = 'status ok'; res.textContent = '保存しました(' + r.count + '人)。ボランティア向けページを開き直すと出ます。'; }
+        else { res.className = 'status ng'; res.textContent = r && r.reason === 'members' ? '保存できませんでした。人数は' + max + '人までです。' : errText(r); }
+      }).catch(function () { saveBtn.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
+    }
+    load();
+  }
+
   // ---- 設定: ボランティア向けの話題(追加は、承認・修正のときに文字で入れる。ここでは消す)
   function renderTopicSettings() {
     view.appendChild(h('h2', { text: 'ボランティア向けの話題' }));
@@ -1097,6 +1167,7 @@
       }).catch(function () { fres.className = 'status ng'; fres.textContent = ERR.failed; });
     } })]));
     view.appendChild(fres);
+    renderMemberSettings();
     renderMediaSettings();
     renderTopicSettings();
     renderLineSettings();

@@ -4,7 +4,7 @@
   function h(tag, attrs, kids) {
     var e = document.createElement(tag);
     Object.keys(attrs || {}).forEach(function (k) {
-      if (k === 'text') e.textContent = attrs[k]; else if (k === 'class') e.className = attrs[k]; else e.setAttribute(k, attrs[k]);
+      if (k === 'text') e.textContent = attrs[k]; else if (k === 'class') e.className = attrs[k]; else if (k.slice(0, 2) === 'on') e.addEventListener(k.slice(2), attrs[k]); else e.setAttribute(k, attrs[k]);
     });
     (kids || []).forEach(function (c) { if (c) e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
     return e;
@@ -44,12 +44,52 @@
     if (t.note) d.appendChild(h('p', { text: '対応メモ: ' + t.note }));
     return d;
   }
+  // 当日の参加メンバーの表(日ごとの午前・午後)。○ 参加 / △ 未定 / − 不参加 / 空 = まだ聞いていない
+  var MARK = { yes: ['○', '参加'], maybe: ['△', '未定'], no: ['−', '不参加'] };
+  function todayJst() { var d = new Date(Date.now() + 9 * 3600000); return d.toISOString().slice(0, 10); }
+  function membersBox(m) {
+    if (!m || !Array.isArray(m.rows) || !m.rows.length || !Array.isArray(m.days)) return null;
+    var today = todayJst(), sec = h('section', { class: 'members' }, [h('h2', { text: '当日の参加メンバー' })]);
+    sec.appendChild(h('p', { class: 'hint', text: (m.title || '') + (m.asOf ? '(' + m.asOf.replace(/^(\d+)-0?(\d+)-0?(\d+)$/, '$1年$2月$3日') + ' 時点)' : '') + '。予定が変わった方は、お知らせください。' }));
+    var r1 = h('tr', {}, [h('th', { rowspan: '2', scope: 'col', class: 'm-name', text: '名前' })]), r2 = h('tr');
+    m.days.forEach(function (d) {
+      var on = d[0] === today ? ' m-today' : '';
+      r1.appendChild(h('th', { colspan: '2', scope: 'colgroup', class: 'm-day' + on }, [String(d[1] || ''), d[2] ? h('small', { text: d[2] + (on ? '・今日' : '') }) : null]));
+      r2.appendChild(h('th', { scope: 'col', class: 'm-am' + on, text: '午前' })); r2.appendChild(h('th', { scope: 'col', class: on.trim(), text: '午後' }));
+    });
+    var n = m.days.length * 2, yes = [], maybe = [], tb = h('tbody');
+    for (var k = 0; k < n; k++) { yes.push(0); maybe.push(0); }
+    m.rows.forEach(function (p) {
+      var tr = h('tr', {}, [h('th', { scope: 'row', class: 'm-name' }, [String(p.name || ''), p.org ? h('small', { text: p.org }) : null])]);
+      for (var k = 0; k < n; k++) {
+        var v = (p.s || [])[k], mk = MARK[v], on = m.days[k >> 1][0] === today ? ' m-today' : '';
+        if (v === 'yes') yes[k]++; if (v === 'maybe') maybe[k]++;
+        tr.appendChild(h('td', { class: 'm-' + (mk ? v : 'none') + (k % 2 ? '' : ' m-am') + on }, mk ? [h('span', { 'aria-hidden': 'true', text: mk[0] }), h('span', { class: 'sr-only', text: mk[1] })] : [h('span', { class: 'sr-only', text: 'まだ分かりません' })]));
+      }
+      tb.appendChild(tr);
+    });
+    var tf = h('tr', {}, [h('th', { scope: 'row', class: 'm-name', text: '参加の人数' })]);
+    for (var j = 0; j < n; j++) tf.appendChild(h('td', { class: (j % 2 ? '' : 'm-am') + (m.days[j >> 1][0] === today ? ' m-today' : '') }, [yes[j] + '人', maybe[j] ? h('small', { text: '未定' + maybe[j] }) : null]));
+    var table = h('table', { class: 'mtable' }, [h('caption', { class: 'sr-only', text: '当日の参加メンバー(日ごとの午前・午後)' }), h('thead', {}, [r1, r2]), tb, h('tfoot', {}, [tf])]);
+    sec.appendChild(h('div', { class: 'mtable-wrap', tabindex: '0', role: 'region', 'aria-label': '当日の参加メンバーの表(横に動かせます)' }, [table]));
+    sec.appendChild(h('p', { class: 'm-legend' }, [h('span', { class: 'm-yes', text: '○' }), ' 参加 ', h('span', { class: 'm-maybe', text: '△' }), ' 未定 ', h('span', { class: 'm-no', text: '−' }), ' 不参加']));
+    var notes = m.rows.filter(function (p) { return p.note; });
+    if (notes.length) {
+      var dl = h('dl', { class: 'm-notes' });
+      notes.forEach(function (p) { dl.appendChild(h('dt', { text: p.name })); dl.appendChild(h('dd', { text: p.note })); });
+      sec.appendChild(h('details', { class: 'srcbox' }, [h('summary', { text: 'ひとこと(' + notes.length + '人)' }), dl]));
+    }
+    return sec;
+  }
   document.addEventListener('member-ready', function () {
     if (!app) return;
     app.textContent = '読み込み中です…';
     window.callGas({ action: 'volunteer.feed', idToken: window.APP.cred }).then(function (r) {
       app.textContent = '';
       if (!r || !r.ok) { app.appendChild(h('p', { class: 'status ng', text: '読み込めませんでした。もう一度ログインしてください。' })); return; }
+      var mbox = null;
+      try { mbox = membersBox(r.members); } catch (e) { mbox = null; }   // 表が作れなくても、お知らせは出す
+      if (mbox) app.appendChild(mbox);
       if (r.tasks && r.tasks.length) {
         app.appendChild(h('h2', { text: 'やること' }));
         var tl = h('div', { class: 'list' });
