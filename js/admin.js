@@ -768,6 +768,72 @@
     }).catch(function () { say(ERR.failed); });
   }
 
+  // ---- コメント(アプリづくりノート)。確認待ちを「載せる/載せない」、返信を書く。載せないは本文が消えるので2回押し
+  function renderComments() {
+    view.textContent = '';
+    view.appendChild(h('h2', { text: 'コメント(アプリづくりノート)' }));
+    view.appendChild(h('p', { class: 'hint', text: '返信を書くと、コメントの下に「発達ブース 田中より」として出ます。「載せない(消す)」を押すと、コメントはサイトから消え、本文もシートから消えます。' }));
+    var modeBox = h('div', { class: 'cm-mode' });
+    view.appendChild(modeBox);
+    var box = h('div', { class: 'cm-admin' });
+    view.appendChild(box);
+    function showMode(review) {
+      modeBox.textContent = '';
+      modeBox.appendChild(h('p', { class: 'status ok', text: review ? 'いまの設定: 確認してから表示(「載せる」を押すまで、サイトに出ません)' : 'いまの設定: すぐに表示(送られたコメントは、すぐ記事の下に出ます)' }));
+      var mres = h('p', { class: 'status', role: 'status' });
+      modeBox.appendChild(h('button', { class: 'btn-sub', type: 'button', text: review ? 'すぐに表示する設定に切り替える' : '確認してから表示する設定に切り替える', onclick: function (ev) {
+        ev.target.disabled = true;
+        api('admin.comment.mode', { review: !review }).then(function (r) { if (r && r.ok) { say('切り替えました。', true); renderComments(); } else { ev.target.disabled = false; mres.className = 'status ng'; mres.textContent = '切り替えられませんでした。'; } }).catch(function () { ev.target.disabled = false; mres.className = 'status ng'; mres.textContent = ERR.failed; });
+      } }));
+      modeBox.appendChild(mres);
+    }
+    function card(c, pending) {
+      var el = h('section', { class: 'item cm-card' });
+      el.appendChild(h('time', { text: String(c.created_at || '').replace('T', ' ').slice(0, 16) + ' / 記事: ' + c.post }));
+      el.appendChild(h('p', { class: 'cm-who', text: (c.name || '(名前なし)') }));
+      el.appendChild(h('p', { class: 'cm-body', text: c.body }));
+      var ta = h('textarea', { rows: '3', maxlength: '800', 'aria-label': '返信', placeholder: '返信(空のままなら返信なし)' });
+      ta.value = c.reply || '';
+      var res = h('p', { class: 'status', role: 'status' });
+      var row = h('div', { class: 'btn-row' });
+      function act(label, cls, fn) { var b = h('button', { class: cls, type: 'button', text: label, onclick: function () { fn(b); } }); row.appendChild(b); return b; }
+      act('返信を保存', 'btn-sub', function (b) {
+        b.disabled = true;
+        api('admin.comment.reply', { id: c.id, reply: ta.value }).then(function (r) { b.disabled = false; res.className = 'status ' + (r && r.ok ? 'ok' : 'ng'); res.textContent = r && r.ok ? '保存しました。' : '保存できませんでした。'; }).catch(function () { b.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
+      });
+      if (pending) act('載せる', 'btn', function (b) {
+        b.disabled = true;
+        api('admin.comment.reply', { id: c.id, reply: ta.value }).then(function (rr) { if (!rr || !rr.ok) throw new Error('reply'); return api('admin.comment.decide', { id: c.id, decision: 'publish' }); }).then(function (r) {
+          if (r && r.ok) { el.remove(); say('載せました(記事のページに、1分ほどで出ます)。', true); } else { b.disabled = false; res.className = 'status ng'; res.textContent = '載せられませんでした。'; }
+        }).catch(function () { b.disabled = false; res.className = 'status ng'; res.textContent = ERR.failed; });
+      });
+      else act('確認待ちに戻す', 'btn-sub', function (b) {
+        b.disabled = true;
+        api('admin.comment.decide', { id: c.id, decision: 'unpublish' }).then(function (r) { if (r && r.ok) { el.remove(); say('確認待ちに戻しました。', true); } else b.disabled = false; });
+      });
+      var armed = false;
+      act('載せない(消す)', 'btn-sub', function (b) {
+        if (!armed) { armed = true; b.textContent = '本当に消す(もう一度押す)'; setTimeout(function () { armed = false; b.textContent = '載せない(消す)'; }, 5000); return; }
+        b.disabled = true;
+        api('admin.comment.decide', { id: c.id, decision: 'reject' }).then(function (r) { if (r && r.ok) { el.remove(); say('消しました。', true); } else { b.disabled = false; armed = false; } });
+      });
+      el.appendChild(ta); el.appendChild(row); el.appendChild(res);
+      return el;
+    }
+    api('admin.comments.list').then(function (r) {
+      if (!r || !r.ok) { say('読み込めませんでした。'); return; }
+      showMode(!!r.review);
+      if (r.review || r.pending.length) {
+        box.appendChild(h('h3', { text: '確認待ち(' + r.pending.length + '件)' }));
+        if (!r.pending.length) box.appendChild(h('p', { class: 'muted', text: '確認待ちのコメントはありません。' }));
+        r.pending.forEach(function (c) { box.appendChild(card(c, true)); });
+      }
+      box.appendChild(h('h3', { text: '表示中(最近の' + r.published.length + '件)' }));
+      if (!r.published.length) box.appendChild(h('p', { class: 'muted', text: 'まだ表示中のコメントはありません。' }));
+      r.published.forEach(function (c) { box.appendChild(card(c, false)); });
+    }).catch(function () { say(ERR.failed); });
+  }
+
   // ---- 名簿
   function renderRoster() {
     view.textContent = '';
@@ -1266,7 +1332,7 @@
     view.appendChild(res3);
   }
 
-  var TABS = [['承認待ち', renderPending], ['取り込み', renderIngest], ['ページで直す', renderLive], ['公開中', renderPublished], ['アーカイブ', renderArchive], ['お問い合わせ', renderContacts], ['名簿', renderRoster], ['アクセス数', renderStats], ['設定', renderSettings]];
+  var TABS = [['承認待ち', renderPending], ['取り込み', renderIngest], ['ページで直す', renderLive], ['公開中', renderPublished], ['アーカイブ', renderArchive], ['お問い合わせ', renderContacts], ['コメント', renderComments], ['名簿', renderRoster], ['アクセス数', renderStats], ['設定', renderSettings]];
   document.addEventListener('member-ready', function () {
     if (!app) return;
     if (window.APP.role !== 'admin') { app.textContent = ''; return; }
@@ -1282,6 +1348,8 @@
     app.appendChild(h('p', { class: 'hint', text: 'ふだんの取り込み・確認・直し・「済み」は、HP専用LINE(下のメニュー)でできます。このページは、一覧でまとめて見たいとき、写真を細かく直したいとき、名簿・設定に使います。' }));
     app.appendChild(nav); app.appendChild(msgBox); app.appendChild(view);
     var m = /^#edit=([A-Za-z0-9_-]{1,40})$/.exec(location.hash || '');   // 公開ページの「管理」ボタンから来たとき
-    if (m) { Array.prototype.forEach.call(nav.children, function (b) { b.className = 'tab'; }); renderOne(m[1]); } else renderPending();
+    if (m) { Array.prototype.forEach.call(nav.children, function (b) { b.className = 'tab'; }); renderOne(m[1]); }
+    else if (location.hash === '#comments') selectTab(TABS.map(function (t) { return t[0]; }).indexOf('コメント'));   // コメントの通知メールのリンクから
+    else renderPending();
   });
 })();

@@ -60,7 +60,7 @@ img{max-width:100%;height:auto}
   .js .menu-btn{display:none}
   .site-nav ul{display:flex;flex-wrap:wrap;align-items:center;gap:0 2px;padding:0 16px}
   .site-nav li:last-child{margin-left:auto}
-  .site-nav a{border-radius:0;background:transparent;min-height:50px;padding:0 12px;font-size:16px;border-bottom:3px solid transparent;border-top:3px solid transparent}
+  .site-nav a{border-radius:0;background:transparent;min-height:50px;padding:0 8px;font-size:16px;border-bottom:3px solid transparent;border-top:3px solid transparent}
   .site-nav a:hover{background:var(--green-l)}
   .site-nav a[aria-current="page"]{background:transparent;color:var(--green-d);border-bottom-color:var(--green)}
   .site-nav li:last-child a{border:1.5px solid var(--green);border-radius:999px;min-height:42px;margin:4px 0;padding:0 18px;color:var(--green-d)}
@@ -278,6 +278,46 @@ select,input[type=date],input[type=url]{width:100%;font:inherit;padding:10px 12p
   .hero-actions .btn,.hero-actions .btn-sub{min-height:52px;padding:12px 28px;font-size:18px;line-height:1.5}
 }
 .note-box p{font-size:19px}
+.lbl{display:inline-block;font-size:15.5px;line-height:1.6;font-weight:700;padding:0 12px;border-radius:999px;margin:0 10px 6px 0}
+.lbl-how{background:var(--green-l);color:var(--green-d);border:1px solid var(--rule-green)}
+.lbl-log{background:var(--orange-l);color:var(--orange-d);border:1px solid var(--note-line)}
+.post-meta{margin:0 0 6px;color:var(--muted)}
+.post-list{list-style:none;padding:0;margin:16px 0;display:grid;gap:14px}
+.post-list li{max-width:none}
+.post-card{background:var(--white);border:1px solid var(--line);border-left:6px solid var(--green);border-radius:14px;padding:14px 20px 8px;box-shadow:var(--shadow)}
+.post-card h2{border-left:0;padding-left:0;margin:4px 0 8px;font-size:clamp(21px,5vw,24px)}
+.post-card h2 a{color:var(--green-d)}
+.more{display:inline-flex;align-items:center;min-height:48px;font-weight:700}
+.crumb{margin:0 0 8px}
+.crumb a{display:inline-flex;align-items:center;min-height:44px}
+.post header h1{margin-bottom:8px}
+.post-body{max-width:44rem;line-height:1.9}
+.post-body h2{margin-top:32px}
+.post-body .sign{text-align:right;font-weight:700;color:var(--green-d)}
+.post-nav{display:grid;gap:10px;margin:28px 0 8px}
+@media (min-width:760px){.post-nav{grid-template-columns:1fr 1fr}}
+.comments{margin-top:36px;border-top:2px solid var(--rule-green);padding-top:8px}
+.cm-count{font-size:.8em;color:var(--muted);margin-left:6px}
+.cm-list{margin:12px 0 28px}
+.cm-item{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:0 0 12px}
+.cm-head{margin:0 0 4px}
+.cm-head time{font-size:15px;color:var(--muted);margin-left:10px}
+.cm-text{margin:4px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.cm-reply{background:var(--green-l);border-left:4px solid var(--green);border-radius:10px;padding:8px 14px;margin:10px 0 2px 12px}
+@media (min-width:760px){.cm-reply{margin-left:24px}}
+.cm-reply-head{display:flex;align-items:center;gap:8px;margin:0 0 2px;font-weight:700;color:var(--green-d)}
+.cm-reply-head img{border-radius:50%}
+.cm-more summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-weight:700;color:var(--green-d)}
+.cm-note{padding-bottom:14px}
+.cm-note h4{margin:14px 0 6px;color:var(--orange-d);font-size:20px}
+.cm-note ul{margin:0;padding-left:1.3em}
+.cm-note li{font-size:17px;margin:4px 0}
+@media (min-width:760px){.link-cards.cols4{grid-template-columns:repeat(2,1fr)}}
+.greeting p{line-height:1.9}
+.greeting .sign{text-align:right;font-weight:700;color:var(--green-d);margin-top:18px}
+.archive-note{color:var(--muted);margin:0 0 12px}
+.notice-soft{background:var(--green-l);border:1px solid var(--rule-green);border-radius:14px;padding:12px 18px;margin:0 0 20px}
+.photo-list .item{margin-bottom:14px}
 /* スマホ: トップの上の部分を、1画面に収まるようコンパクトに(写真は細い帯にして、ボタンを写真より先に) */
 @media (max-width:759px){
   .hero{grid-template-areas:"lead" "act" "photo";row-gap:10px;padding:16px 16px 14px;border-radius:20px}

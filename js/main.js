@@ -82,7 +82,7 @@
       var mx = parseInt(box.getAttribute('data-max') || '0', 10);   // トップは3件まで(残りは掲示板・イベント情報へ)
       if (Array.isArray(items) && mx > 0) items = items.slice(0, mx);
       var tp = box.getAttribute('data-topic');   // 機器展のページの欄(開催案内/セミナー/展示・体験/そのほか)
-      if (Array.isArray(items) && tp) items = items.filter(function (it) { return tp === 'そのほか' ? ['開催案内', 'セミナー', '展示・体験'].indexOf(it.topic) < 0   /* gas/main/Config.js の KIKITEN_TOPICS と合わせる */ : it.topic === tp; });
+      if (Array.isArray(items) && tp) items = items.filter(function (it) { return tp === 'そのほか' ? ['開催案内', 'セミナー', '展示・体験', '当日の様子'].indexOf(it.topic) < 0   /* gas/main/Config.js の KIKITEN_TOPICS と合わせる */ : it.topic === tp; });
       if (Array.isArray(items) && tp) {   // 当日の順番に(日付→開始時刻。日付のないものは最後)
         var key = function (it) { var m = /(\d{1,2})[:：時](\d{2})?/.exec(String(it.dateText || '').replace(/^.*?日[^\d]*/, '')); return (String(it.date || '9999-99-99')) + ' ' + (m ? ('0' + m[1]).slice(-2) + ':' + (m[2] || '00') : '99:99'); };
         items = items.slice().sort(function (a, b) { var x = key(a), y = key(b); return x < y ? -1 : (x > y ? 1 : 0); });
@@ -141,7 +141,7 @@
   var bn = document.querySelector('[data-banner]');
   if (bn) fetch(bn.getAttribute('data-banner'), { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : []; }).then(function (items) {
     (Array.isArray(items) ? items : []).forEach(function (it) {
-      var KK_YEARS = [2026];   // 機器展の年別ページがある年(ビルドのときに入る)
+      var KK_YEARS = [2026, 2027];   // 機器展の年別ページがある年(ビルドのときに入る)
       var ym = /^kikiten-(\d{4})\.html$/.exec(String(it.link || ''));
       var href = ym && KK_YEARS.indexOf(Number(ym[1])) >= 0 ? String(it.link) : 'events.html';
       var a = el('a', 'kk-banner'); a.href = href;
@@ -237,6 +237,69 @@
           else { st.className = 'status ng'; st.textContent = '送信できませんでした。時間をおいて、もう一度お試しください。'; send.disabled = false; }
         }).catch(function () { st.className = 'status ng'; st.textContent = '送信できませんでした。時間をおいて、もう一度お試しください。'; send.disabled = false; });
     });
+  }
+
+  // アプリづくりノートのコメント(GAS の comment.list / comment.submit。田中さんが確認して「載せる」にしたものだけ表示される)
+  var cmBox = document.getElementById('cm-list');
+  if (cmBox) {
+    var cmPost = cmBox.getAttribute('data-post') || '';
+    var cmCount = document.getElementById('cm-count');
+    var showCm = function () {
+      if (!GAS) { cmBox.textContent = ''; cmBox.appendChild(el('p', 'muted', 'コメントは、ただいま準備中です。')); return; }
+      window.callGas({ action: 'comment.list', post: cmPost }).then(function (j) {
+        cmBox.textContent = '';
+        var items = (j && j.ok && Array.isArray(j.items)) ? j.items : null;
+        if (!items) { cmBox.appendChild(el('p', 'muted', 'コメントを読み込めませんでした。時間をおいて、もう一度開いてください。')); return; }
+        if (cmCount) cmCount.textContent = items.length ? '(' + items.length + '件)' : '';
+        if (!items.length) { cmBox.appendChild(el('p', 'muted', 'まだコメントはありません。感想や「こんな機能がほしい」を、気軽にどうぞ。')); return; }
+        var rest = null;
+        items.forEach(function (c, ci) {
+          var d = el('article', 'cm-item');
+          var head = el('p', 'cm-head');
+          head.appendChild(el('strong', 'cm-name', String(c.name || 'お名前なしの方')));
+          if (c.at) head.appendChild(el('time', null, fmtDate(String(c.at))));
+          d.appendChild(head);
+          d.appendChild(el('p', 'cm-text', String(c.body || '')));   // 文字だけで入れる(HTMLとして解釈しない)
+          if (c.reply) {
+            var r = el('div', 'cm-reply');
+            var rh = el('p', 'cm-reply-head'); var bi = el('img'); bi.src = 'img/bear.webp'; bi.alt = ''; bi.width = 32; bi.height = 32; rh.appendChild(bi); rh.appendChild(document.createTextNode('発達ブース 田中より'));
+            r.appendChild(rh);
+            r.appendChild(el('p', 'cm-text', String(c.reply)));
+            d.appendChild(r);
+          }
+          if (ci >= 10) { if (!rest) { rest = el('details', 'cm-more'); rest.appendChild(el('summary', null, 'ほかのコメントをすべて見る(' + (items.length - 10) + '件)')); cmBox.appendChild(rest); } rest.appendChild(d); }
+          else cmBox.appendChild(d);
+        });
+      }).catch(function () { cmBox.textContent = ''; cmBox.appendChild(el('p', 'muted', 'コメントを読み込めませんでした。時間をおいて、もう一度開いてください。')); });
+    };
+    showCm();
+    var cform = document.getElementById('cm-form');
+    if (cform) {
+      var cst = document.getElementById('cm-status'), csend = document.getElementById('cm-send');
+      var cng = function (t) { cst.className = 'status ng'; cst.textContent = t; };
+      if (!GAS) { csend.disabled = true; cst.className = 'status'; cst.textContent = 'ただいま準備中のため、送信できません。'; }
+      var cbody = document.getElementById('cm-body'), ccnt = document.getElementById('cm-chars');
+      if (cbody && ccnt) cbody.addEventListener('input', function () { ccnt.textContent = String(cbody.value.length); });
+      cform.addEventListener('submit', function (e) {
+        e.preventDefault();
+        cst.className = 'status'; cst.textContent = '';
+        var fd = new FormData(cform);
+        var body = String(fd.get('body') || '').trim();
+        if (!body) return cng('コメントの内容を入力してください。');
+        if (body.length > 1000) return cng('1000字までです(いま' + body.length + '字です)。');
+        if (/https?:\/\/|www\./i.test(body.normalize('NFKC')) || /https?:\/\/|www\./i.test(String(fd.get('name') || '').normalize('NFKC'))) return cng('リンク(ホームページのアドレス)は書けません。文字だけでお願いします。');
+        csend.disabled = true; cst.textContent = '送っています…';
+        window.callGas({ action: 'comment.submit', post: cmPost, name: String(fd.get('name') || '').trim(), body: body, website: String(fd.get('hp_extra') || '') })
+          .then(function (j) {
+            if (j && j.ok) { cst.className = 'status ok'; cst.textContent = (j.shown === false) ? 'ありがとうございます。コメントを受け付けました。確認ができしだい、この記事の下に表示します(すぐには表示されません)。' : 'ありがとうございます。コメントを送りました。1分ほどで、この記事の下に表示されます。'; if (j.shown !== false) setTimeout(showCm, 1500); cform.reset(); if (ccnt) ccnt.textContent = '0'; csend.disabled = false; cst.setAttribute('tabindex', '-1'); cst.focus(); }
+            else if (j && j.reason === 'busy') { cng('短い時間に何度も送られたため、少し時間をおいてください。'); csend.disabled = false; }
+            else if (j && j.reason === 'contact') { cng('電話番号やメールアドレスのような文字が入っています。書かないでください。'); csend.disabled = false; }
+            else if (j && j.reason === 'url') { cng('リンク(ホームページのアドレス)は書けません。文字だけでお願いします。'); csend.disabled = false; }
+            else if (j && (j.reason === 'body' || j.reason === 'name')) { cng('文字数が多すぎるようです。コメントは1000字まで、ニックネームは30字までです。'); csend.disabled = false; }
+            else { cng('送れませんでした。電波のよいところで、もう一度お試しください。入力した内容は残してあります。'); csend.disabled = false; }
+          }).catch(function () { cng('送れませんでした。電波のよいところで、もう一度お試しください。入力した内容は残してあります。'); csend.disabled = false; });
+      });
+    }
   }
 
   // ボランティアスタッフの登録(GAS の join.submit。管理者がLINEで確かめて名簿に入れる)
