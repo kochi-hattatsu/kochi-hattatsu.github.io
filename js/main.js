@@ -267,7 +267,7 @@
             r.appendChild(el('p', 'cm-text', String(c.reply)));
             d.appendChild(r);
           }
-          if (ci >= 10) { if (!rest) { rest = el('details', 'cm-more'); rest.appendChild(el('summary', null, 'ほかのコメントをすべて見る(' + (items.length - 10) + '件)')); cmBox.appendChild(rest); } rest.appendChild(d); }
+          if (ci < items.length - 10) { if (!rest) { rest = el('details', 'cm-more'); rest.appendChild(el('summary', null, '以前のコメントもすべて見る(' + (items.length - 10) + '件)')); cmBox.appendChild(rest); } rest.appendChild(d); }   // 古いものを折りたたみ、新しい10件はそのまま見せる(送ったコメントが隠れない)
           else cmBox.appendChild(d);
         });
       }).catch(function () { cmBox.textContent = ''; cmBox.appendChild(el('p', 'muted', 'コメントを読み込めませんでした。時間をおいて、もう一度開いてください。')); });
@@ -292,7 +292,7 @@
         window.callGas({ action: 'comment.submit', post: cmPost, name: String(fd.get('name') || '').trim(), body: body, website: String(fd.get('hp_extra') || '') })
           .then(function (j) {
             if (j && j.ok) { cst.className = 'status ok'; cst.textContent = (j.shown === false) ? 'ありがとうございます。コメントを受け付けました。確認ができしだい、この記事の下に表示します(すぐには表示されません)。' : 'ありがとうございます。コメントを送りました。1分ほどで、この記事の下に表示されます。'; if (j.shown !== false) setTimeout(showCm, 1500); cform.reset(); if (ccnt) ccnt.textContent = '0'; csend.disabled = false; cst.setAttribute('tabindex', '-1'); cst.focus(); }
-            else if (j && j.reason === 'busy') { cng('短い時間に何度も送られたため、少し時間をおいてください。'); csend.disabled = false; }
+            else if (j && j.reason === 'busy') { cng('いま混み合っています。少し時間をおいて、もう一度お試しください。'); csend.disabled = false; }
             else if (j && j.reason === 'contact') { cng('電話番号やメールアドレスのような文字が入っています。書かないでください。'); csend.disabled = false; }
             else if (j && j.reason === 'url') { cng('リンク(ホームページのアドレス)は書けません。文字だけでお願いします。'); csend.disabled = false; }
             else if (j && (j.reason === 'body' || j.reason === 'name')) { cng('文字数が多すぎるようです。コメントは1000字まで、ニックネームは30字までです。'); csend.disabled = false; }
