@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://kochi-hattatsu.goatcounter.com data:; media-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">
 <title>AIでつくる その子専用のアプリ開発(ポスター発表 詳細版)|高知発達ブース</title>
 <meta name="description" content="第24回 高知ふくし機器展のポスター発表のページです。紹介動画、指示文づくりツール、見本、費用、声の比較を載せています。">
 <style>
@@ -879,6 +879,20 @@ main{padding-bottom:96px}
   setup('copySample', 'sampleText', 'sampleMsg', 'コピーしました。メールやLINEで自分に送ると、パソコンで開けます。');
   setup('copyFree', 'freeText', 'freeMsg', 'コピーしました。無料版のチャットに貼ってください。');
   setup('copyAg', 'agText', 'agMsg', 'コピーしました。Antigravity の入力欄に貼ってください。');
+})();
+</script>
+<script>
+/* アクセス数の集計(GoatCounter・Cookieなし)。共通の js/main.js と同じ決まり: 関係者の端末(#nocount を開いた端末)・https以外は数えない */
+(function () {
+  var code = "kochi-hattatsu";
+  if (!code || location.protocol !== 'https:') return;
+  try {
+    if (location.hash === '#nocount') localStorage.setItem('hp_staff', '1');
+    if (localStorage.getItem('hp_staff') === '1') return;
+  } catch (e) {}
+  var q = 'p=' + encodeURIComponent(location.pathname) + '&t=' + encodeURIComponent(document.title) +
+          '&r=' + encodeURIComponent(document.referrer || '') + '&s=' + ((window.screen && screen.width) || 0) + '&rnd=' + Math.random().toString(36).slice(2);
+  new Image().src = 'https://' + code + '.goatcounter.com/count?' + q;
 })();
 </script>
 </body>
