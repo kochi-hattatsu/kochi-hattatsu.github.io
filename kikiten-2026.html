@@ -46,7 +46,9 @@
 
 <section aria-labelledby="k-photo">
   <h2 id="k-photo">当日の様子</h2>
-  <div class="list photo-list" data-src="data/kikiten.json" data-keep="1" data-year="2026" data-topic="当日の様子" data-empty="当日の写真は、準備ができしだい、ここに載せます。">
+  <p class="small">画像を押すと、大きく表示されます。</p>
+  <div class="media-grid media-photo" data-media="data/kikiten_media.json" data-year="2026" data-slot="photo"></div>
+  <div class="list photo-list" data-src="data/kikiten.json" data-keep="1" data-year="2026" data-topic="当日の様子" data-empty="">
     <p class="muted">読み込み中です…</p>
   </div>
 </section>
