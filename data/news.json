@@ -17,5 +17,13 @@
   "body": "2027年の高知ふくし機器展の日にちが決まりました。場所は、2026年と同じ高知県立ふくし交流プラザです。出展メーカーなどのくわしいことは、わかりしだい、このホームページでお知らせします。",
   "year": "2027",
   "url": "https://kochi-hattatsu.github.io/kikiten-2027.html"
+ },
+ {
+  "title": "アプリづくりノートを更新しました",
+  "id": "qb1a02cfac3",
+  "body": "「Museを入れてみました ―おはなしアプリには使えなかったけれど」を載せました。AIアシスタントをアプリ開発に使ってみた記録です。",
+  "year": "2026",
+  "fold": true,
+  "url": "https://kochi-hattatsu.github.io/blog-muse-iretemita.html"
  }
 ]
